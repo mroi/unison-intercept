@@ -164,7 +164,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "test \"$DEPLOYMENT_POSTPROCESSING\" = YES || exit 0\nif ! otool -L \"$UNISON_PATH/Contents/MacOS/Unison\" | fgrep -q \"$FULL_PRODUCT_NAME\" ; then\n\tinstall_name_tool -change /usr/lib/libSystem.B.dylib \"@executable_path/$FULL_PRODUCT_NAME\" \"$UNISON_PATH/Contents/MacOS/Unison\"\nfi\nif ! codesign -v \"$CODESIGNING_FOLDER_PATH\" 2> /dev/null ; then\n\tcodesign -s \"`id -F`\" -f \"$CODESIGNING_FOLDER_PATH\"\nfi\nif ! codesign -v \"$UNISON_PATH\" 2> /dev/null ; then\n\tcodesign -s \"`id -F`\" --deep \"$UNISON_PATH\"\nfi";
+			shellScript = "test \"$DEPLOYMENT_POSTPROCESSING\" = YES || exit 0\nif ! otool -L \"$UNISON_PATH/Contents/MacOS/Unison\" | fgrep -q \"$FULL_PRODUCT_NAME\" ; then\n\tinstall_name_tool -change /usr/lib/libSystem.B.dylib \"@executable_path/$FULL_PRODUCT_NAME\" \"$UNISON_PATH/Contents/MacOS/Unison\"\nfi\nif ! codesign -v \"$CODESIGNING_FOLDER_PATH\" 2> /dev/null ; then\n\tstrip -S \"$INSTALL_DIR$EXECUTABLE_PATH\"\n\tcodesign -s \"`id -F`\" -f \"$CODESIGNING_FOLDER_PATH\"\nfi\nif ! codesign -v \"$UNISON_PATH\" 2> /dev/null ; then\n\tcodesign -s \"`id -F`\" --deep \"$UNISON_PATH\"\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -219,6 +219,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REEXPORTED_LIBRARY_NAMES = System;
+				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
 		};
@@ -234,6 +235,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REEXPORTED_LIBRARY_NAMES = System;
+				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Release;
 		};
