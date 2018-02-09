@@ -19,17 +19,17 @@ also attempt to sign the resulting executables.
 
 Currently, three intercept layers are provided, which add the following features to Unison:
 
-**nocache**
+**nocache**  
 Cause all writes performed by Unison to bypass the buffer cache. This has two advantages: It 
 avoids polluting the cache if Unison handles large files and it improves data safety, the 
 subsequent read check done by Unison will read from the physical storage medium and not from 
 the cache.
 
-**config**
+**config**  
 As Unison reads its configuration files, this intercept layer parses them and extracts 
 additional configuration options used by other intercepts. All additional options start with 
 `#` and therefore look like comments to the internal Unison parser.
 
-**post**
+**post**  
 Runs post processing commands whenever a specified file changes. This step is configured 
 using lines of the form `#post = Path PATH -> COMMAND`.
