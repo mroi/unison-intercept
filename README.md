@@ -14,8 +14,9 @@ functionality.
 If you compile the project either in Xcode or using `xcodebuild`, make sure to point the 
 `UNISON_PATH` build setting to your `Unison.app` bundle. By default, the build system is 
 configured to my personal needs. A release build will place `libintercept.dylib` inside the 
-Unison bundle and modify Unison to link against it instead of `libSystem`. The build will 
-also attempt to sign the resulting executables.
+Unison bundle and modify Unison with `install_name_tool` to link against 
+`libintercept.dylib` instead of `libSystem`. The build will also attempt to sign the 
+resulting executables.
 
 Currently, three intercept layers are provided, which add the following features to Unison:
 
