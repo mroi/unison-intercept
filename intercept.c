@@ -1,5 +1,5 @@
 /* Stacked libSystem intercept.
- * 
+ *
  * All libSystem functions can be replaced with a new implementation. A per-thread
  * context identifier allows calling the intercepted libSystem functions without
  * running into an endless recursion. Instead, the next layer of intercepts will
@@ -85,7 +85,7 @@ int open(const char *path, int flags, ...)
 	ORIGINAL_SYMBOL(open, (const char *path, int flags, ...));
 	int result;
 	PROLOGUE;
-	
+
 	va_list arg;
 	va_start(arg, flags);
 	switch (current_context) {
@@ -114,7 +114,7 @@ int open(const char *path, int flags, ...)
 			break;
 	}
 	va_end(arg);
-	
+
 	EPILOGUE;
 	return result;
 }
@@ -124,7 +124,7 @@ int close(int fd)
 	ORIGINAL_SYMBOL(close, (int fd));
 	int result;
 	PROLOGUE;
-	
+
 	switch (current_context) {
 		case NONE:
 		case NOCACHE:
@@ -138,7 +138,7 @@ int close(int fd)
 			result = original_close(fd);
 			break;
 	}
-	
+
 	EPILOGUE;
 	return result;
 }
@@ -148,7 +148,7 @@ ssize_t read(int fd, void *buf, size_t bytes)
 	ORIGINAL_SYMBOL(read, (int fd, void *buf, size_t bytes));
 	ssize_t result;
 	PROLOGUE;
-	
+
 	switch (current_context) {
 		case NONE:
 		case NOCACHE:
@@ -162,7 +162,7 @@ ssize_t read(int fd, void *buf, size_t bytes)
 			result = original_read(fd, buf, bytes);
 			break;
 	}
-	
+
 	EPILOGUE;
 	return result;
 }
@@ -172,7 +172,7 @@ int rename(const char *old, const char *new)
 	ORIGINAL_SYMBOL(rename, (const char *old, const char *new));
 	int result;
 	PROLOGUE;
-	
+
 	switch (current_context) {
 		case NONE:
 		case NOCACHE:
@@ -186,7 +186,7 @@ int rename(const char *old, const char *new)
 			result = original_rename(old, new);
 			break;
 	}
-	
+
 	EPILOGUE;
 	return result;
 }
@@ -196,7 +196,7 @@ int unlink(const char *path)
 	ORIGINAL_SYMBOL(unlink, (const char *path));
 	int result;
 	PROLOGUE;
-	
+
 	switch (current_context) {
 		case NONE:
 		case NOCACHE:
@@ -210,7 +210,7 @@ int unlink(const char *path)
 			result = original_unlink(path);
 			break;
 	}
-	
+
 	EPILOGUE;
 	return result;
 }
@@ -220,7 +220,7 @@ int rmdir(const char *path)
 	ORIGINAL_SYMBOL(rmdir, (const char *path));
 	int result;
 	PROLOGUE;
-	
+
 	switch (current_context) {
 		case NONE:
 		case NOCACHE:
@@ -234,7 +234,7 @@ int rmdir(const char *path)
 			result = original_rmdir(path);
 			break;
 	}
-	
+
 	EPILOGUE;
 	return result;
 }
@@ -244,7 +244,7 @@ int asl_send(aslclient ac, aslmsg msg)
 	ORIGINAL_SYMBOL(asl_send, (aslclient ac, aslmsg msg));
 	int result;
 	PROLOGUE;
-	
+
 	switch (current_context) {
 		case NONE:
 		case NOCACHE:
@@ -258,7 +258,7 @@ int asl_send(aslclient ac, aslmsg msg)
 			result = original_asl_send(ac, msg);
 			break;
 	}
-	
+
 	EPILOGUE;
 	return result;
 }

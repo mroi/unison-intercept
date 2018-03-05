@@ -48,7 +48,7 @@ int post_rmdir(const char *path)
 static void post_recurse(const char *path)
 {
 	post_check_and_run(path);
-	
+
 	struct stat statbuf;
 	if (lstat(path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
 		DIR *dir = opendir(path);
@@ -79,7 +79,7 @@ static void post_check_and_run(const char *path)
 				scratchpad_alloc(&config.scratchpad, size);
 				sprintf(config.scratchpad.string, "%s/%s", config.root[i].string, post->file.string);
 				if (fnmatch(config.scratchpad.string, path, FNM_PATHNAME) == 0) {
-					
+
 					// match found, run the post command
 					pid_t pid = fork();
 					if (pid == 0) {

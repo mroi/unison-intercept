@@ -62,7 +62,7 @@ static void __attribute__((constructor)) initialize(void)
 {
 	char *config_prefix;
 	size_t alloc_size;
-	
+
 	// determine the path where Unison’s config files live
 	const char *envvar = getenv("UNISON");
 	if (envvar) {
@@ -84,12 +84,12 @@ static void __attribute__((constructor)) initialize(void)
 			sprintf(config_prefix, "%s/" UNISON_DIR2, home);
 		}
 	}
-	
+
 	alloc_size = 2 * strlen(config_prefix) + sizeof(":/bin:" _PATH_DEFPATH);
 	config.search_path = malloc(alloc_size);
 	if (!config.search_path) abort();
 	sprintf(config.search_path, "%s:%s/bin:" _PATH_DEFPATH, config_prefix, config_prefix);
-	
+
 	strcat(config_prefix, "/*");
 	config_pattern = config_prefix;
 }
@@ -109,23 +109,23 @@ int config_open(const char *path, int flags, ...)
 	int result;
 	va_list arg;
 	va_start(arg, flags);
-	
+
 	if (flags & O_CREAT) {
 		mode_t mode = va_arg(arg, int);
 		result = open(path, flags, mode);
 	} else {
 		result = open(path, flags);
-		
+
 		if (result >= 0 && (flags & O_ACCMODE) == O_RDONLY && config_mode &&
 			fnmatch(config_pattern, path, FNM_PATHNAME) == 0) {
-			
+
 			if (strlen(strrchr(path, '/') + 1) == 2 + 32) {
 				// unison internal file, sync has started
 				config_mode = false;
 			} else {
 				assert(current_config_fd == -1);  // config files must be read sequentially
 				current_config_fd = result;
-				
+
 				// reset config parser
 				for (size_t i = 0; i < sizeof(parse) / sizeof(parse[0]); i++) {
 					parse[i].seen = 0;
@@ -136,7 +136,7 @@ int config_open(const char *path, int flags, ...)
 			}
 		}
 	}
-	
+
 	va_end(arg);
 	return result;
 }
@@ -235,11 +235,11 @@ static void config_parse(struct parse_s *parser, char character)
 static void process_entry(enum entry_type type)
 {
 	if (!argument.string) return;
-	
+
 	for (char *c = argument.string + strlen(argument.string) - 1; c > argument.string; c--)
 		if (*c == ' ') *c = '\0';
 		else break;
-	
+
 	char *attribute = NULL;
 	char *separator = strstr(argument.string, " -> ");
 	if (separator) {
@@ -249,7 +249,7 @@ static void process_entry(enum entry_type type)
 		for (attribute = separator + sizeof(' -> '); *attribute != '\0'; attribute++)
 			if (*attribute != ' ') break;
 	}
-	
+
 	switch (type) {
 		case ENTRY_ROOT:
 			if (argument.string[0] != '/') break;
@@ -266,7 +266,7 @@ static void process_entry(enum entry_type type)
 			}
 			pthread_mutex_unlock(&config.lock);
 			break;
-			
+
 		case ENTRY_POST:
 			if (!attribute) break;
 			struct post_s *new_post = malloc(sizeof(struct post_s));
@@ -280,7 +280,7 @@ static void process_entry(enum entry_type type)
 			pthread_mutex_unlock(&config.lock);
 			break;
 	}
-	
+
 	argument.string[0] = '\0';
 }
 
