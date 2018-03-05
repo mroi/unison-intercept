@@ -200,7 +200,6 @@
 				DEPLOYMENT_LOCATION = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				DSTROOT = /;
-				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
 				INSTALL_GROUP = admin;
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = "-Weverything";
