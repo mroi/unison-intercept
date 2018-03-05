@@ -15,9 +15,6 @@
 #define UNISON_DIR1 ".unison"
 #define UNISON_DIR2 "Library/Application Support/Unison"
 
-/* magic string that unison outputs when a new profile is invoked */
-#define PROFILE_START "Connecting to "
-
 enum entry_type {
 	ENTRY_ROOT, ENTRY_POST
 };
@@ -158,20 +155,6 @@ ssize_t config_read(int fd, void *buf, size_t bytes)
 	return result;
 }
 
-int config_asl_send(aslclient ac, aslmsg msg)
-{
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-	int result = asl_send(ac, msg);
-	const char *msg_string = asl_get(msg, ASL_KEY_MSG);
-#pragma clang diagnostic pop
-	if (msg_string && strncmp(msg_string, PROFILE_START, sizeof(PROFILE_START) - 1) == 0) {
-		config_mode = true;
-		reset_config();
-	}
-	return result;
-}
-
 
 /* MARK: - Helper Functions */
 
@@ -300,5 +283,6 @@ static void reset_config(void)
 		free(save_post);
 	}
 	config.post = NULL;
+	config_mode = true;
 	pthread_mutex_unlock(&config.lock);
 }

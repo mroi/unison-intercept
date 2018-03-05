@@ -225,30 +225,6 @@ int rmdir(const char *path)
 			CONTEXT(ORIGINAL);
 		case ORIGINAL:
 			result = original_rmdir(path);
-            break;
-    }
-
-    EPILOG;
-    return result;
-}
-
-int asl_send(aslclient ac, aslmsg msg)
-{
-    ORIGINAL_SYMBOL(asl_send, (aslclient ac, aslmsg msg));
-    int result;
-    PROLOG;
-
-    switch (current_context) {
-        case NONE:
-        case NOCACHE:
-            CONTEXT(CONFIG);
-            result = config_asl_send(ac, msg);
-            break;
-        case CONFIG:
-        case POST:
-            CONTEXT(ORIGINAL);
-        case ORIGINAL:
-            result = original_asl_send(ac, msg);
 			break;
 	}
 
