@@ -44,7 +44,7 @@ enum intercept_id {
 	ORIGINAL
 };
 
-#define PROLOGUE \
+#define PROLOG \
 	enum intercept_id current_context = (enum intercept_id)(void *)pthread_getspecific(context)
 
 static inline void CONTEXT(enum intercept_id id)
@@ -52,7 +52,7 @@ static inline void CONTEXT(enum intercept_id id)
 	pthread_setspecific(context, (void *)id);
 }
 
-#define EPILOGUE \
+#define EPILOG \
 	pthread_setspecific(context, (void *)current_context)
 
 
@@ -84,7 +84,7 @@ int open(const char *path, int flags, ...)
 {
 	ORIGINAL_SYMBOL(open, (const char *path, int flags, ...));
 	int result;
-	PROLOGUE;
+	PROLOG;
 
 	va_list arg;
 	va_start(arg, flags);
@@ -115,7 +115,7 @@ int open(const char *path, int flags, ...)
 	}
 	va_end(arg);
 
-	EPILOGUE;
+	EPILOG;
 	return result;
 }
 
@@ -123,7 +123,7 @@ int close(int fd)
 {
 	ORIGINAL_SYMBOL(close, (int fd));
 	int result;
-	PROLOGUE;
+	PROLOG;
 
 	switch (current_context) {
 		case NONE:
@@ -139,7 +139,7 @@ int close(int fd)
 			break;
 	}
 
-	EPILOGUE;
+	EPILOG;
 	return result;
 }
 
@@ -147,7 +147,7 @@ ssize_t read(int fd, void *buf, size_t bytes)
 {
 	ORIGINAL_SYMBOL(read, (int fd, void *buf, size_t bytes));
 	ssize_t result;
-	PROLOGUE;
+	PROLOG;
 
 	switch (current_context) {
 		case NONE:
@@ -163,7 +163,7 @@ ssize_t read(int fd, void *buf, size_t bytes)
 			break;
 	}
 
-	EPILOGUE;
+	EPILOG;
 	return result;
 }
 
@@ -171,7 +171,7 @@ int rename(const char *old, const char *new)
 {
 	ORIGINAL_SYMBOL(rename, (const char *old, const char *new));
 	int result;
-	PROLOGUE;
+	PROLOG;
 
 	switch (current_context) {
 		case NONE:
@@ -187,7 +187,7 @@ int rename(const char *old, const char *new)
 			break;
 	}
 
-	EPILOGUE;
+	EPILOG;
 	return result;
 }
 
@@ -195,7 +195,7 @@ int unlink(const char *path)
 {
 	ORIGINAL_SYMBOL(unlink, (const char *path));
 	int result;
-	PROLOGUE;
+	PROLOG;
 
 	switch (current_context) {
 		case NONE:
@@ -211,7 +211,7 @@ int unlink(const char *path)
 			break;
 	}
 
-	EPILOGUE;
+	EPILOG;
 	return result;
 }
 
@@ -219,7 +219,7 @@ int rmdir(const char *path)
 {
 	ORIGINAL_SYMBOL(rmdir, (const char *path));
 	int result;
-	PROLOGUE;
+	PROLOG;
 
 	switch (current_context) {
 		case NONE:
@@ -235,7 +235,7 @@ int rmdir(const char *path)
 			break;
 	}
 
-	EPILOGUE;
+	EPILOG;
 	return result;
 }
 
@@ -243,7 +243,7 @@ int asl_send(aslclient ac, aslmsg msg)
 {
 	ORIGINAL_SYMBOL(asl_send, (aslclient ac, aslmsg msg));
 	int result;
-	PROLOGUE;
+	PROLOG;
 
 	switch (current_context) {
 		case NONE:
@@ -259,6 +259,6 @@ int asl_send(aslclient ac, aslmsg msg)
 			break;
 	}
 
-	EPILOGUE;
+	EPILOG;
 	return result;
 }
