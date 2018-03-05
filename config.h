@@ -1,9 +1,8 @@
 /* libSystem intercept layer that parses config files as they are read by Unison */
 
-#include <pthread.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <asl.h>
+#include <assert.h>
+#include <pthread.h>
 
 struct string_s {
 	char *string;
@@ -30,10 +29,7 @@ static inline void scratchpad_alloc(struct buffer_s *scratchpad, size_t size)
 	if (scratchpad->size < size) {
 		size = (size + 1024) & ~1023;
 		scratchpad->string = realloc(scratchpad->string, size);
-		if (!scratchpad->string) {
-			fputs("could not allocate memory for scratchpad buffer\n", stderr);
-			abort();
-		}
+		assert(scratchpad->string);
 		scratchpad->size = size;
 	}
 }

@@ -7,9 +7,9 @@
  */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <assert.h>
 #include <pthread.h>
 #include <dlfcn.h>
 
@@ -20,16 +20,12 @@
 #include "post.h"
 
 #include <fcntl.h>
-#include <asl.h>
 
 #define ORIGINAL_SYMBOL(symbol, arguments) \
 	static int (*original_##symbol)arguments; \
 	if (!original_##symbol) { \
 		original_##symbol = (int (*)arguments)dlsym(RTLD_NEXT, #symbol); \
-		if (!original_##symbol) { \
-			fprintf(stderr, "original symbol `" #symbol "` not found by dlsym()\n"); \
-			abort(); \
-		} \
+		assert(original_##symbol); \
 	}
 
 static pthread_key_t context;
@@ -58,10 +54,7 @@ static inline void CONTEXT(enum intercept_id id)
 
 static void __attribute__((constructor)) initialize(void)
 {
-	if (pthread_key_create(&context, NULL) != 0) {
-		fputs("per-thread calling context could not be initialized\n", stderr);
-		abort();
-	}
+	if (pthread_key_create(&context, NULL) != 0) abort();
 
 	// set UNISONLOCALHOSTNAME to the local hostname
 	CFStringRef nameString = SCDynamicStoreCopyLocalHostName(NULL);
@@ -232,30 +225,30 @@ int rmdir(const char *path)
 			CONTEXT(ORIGINAL);
 		case ORIGINAL:
 			result = original_rmdir(path);
-			break;
-	}
+            break;
+    }
 
-	EPILOG;
-	return result;
+    EPILOG;
+    return result;
 }
 
 int asl_send(aslclient ac, aslmsg msg)
 {
-	ORIGINAL_SYMBOL(asl_send, (aslclient ac, aslmsg msg));
-	int result;
-	PROLOG;
+    ORIGINAL_SYMBOL(asl_send, (aslclient ac, aslmsg msg));
+    int result;
+    PROLOG;
 
-	switch (current_context) {
-		case NONE:
-		case NOCACHE:
-			CONTEXT(CONFIG);
-			result = config_asl_send(ac, msg);
-			break;
-		case CONFIG:
-		case POST:
-			CONTEXT(ORIGINAL);
-		case ORIGINAL:
-			result = original_asl_send(ac, msg);
+    switch (current_context) {
+        case NONE:
+        case NOCACHE:
+            CONTEXT(CONFIG);
+            result = config_asl_send(ac, msg);
+            break;
+        case CONFIG:
+        case POST:
+            CONTEXT(ORIGINAL);
+        case ORIGINAL:
+            result = original_asl_send(ac, msg);
 			break;
 	}
 
