@@ -82,11 +82,13 @@ static void __attribute__((constructor)) initialize(void)
 		}
 	}
 
+	// amend PATH with Unison’s bin directory
 	alloc_size = 2 * strlen(config_prefix) + sizeof(":/bin:" _PATH_DEFPATH);
 	config.search_path = malloc(alloc_size);
 	if (!config.search_path) abort();
 	sprintf(config.search_path, "%s:%s/bin:" _PATH_DEFPATH, config_prefix, config_prefix);
 
+	// set pattern to detect opening of configuration files
 	strcat(config_prefix, "/*");
 	config_pattern = config_prefix;
 }
