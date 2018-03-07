@@ -54,17 +54,17 @@ static void post_recurse(const char *path)
 		DIR *dir = opendir(path);
 		struct dirent entry;
 		struct dirent *result = &entry;
-		struct buffer_s recursion = { .string = NULL, .size = 0 };
+		struct buffer_s recursion = { .buffer = NULL, .size = 0 };
 		while (readdir_r(dir, &entry, &result) == 0 && result) {
 			if (strcmp(entry.d_name, ".") == 0 || strcmp(entry.d_name, "..") == 0)
 				continue;
 			size_t size = strlen(path) + strlen(entry.d_name) + sizeof('/') + sizeof('\0');
 			scratchpad_alloc(&recursion, size);
-			assert(recursion.string);  // help the static analyzer
-			sprintf(recursion.string, "%s/%s", path, entry.d_name);
-			post_recurse(recursion.string);
+			assert(recursion.buffer);  // help the static analyzer
+			sprintf(recursion.buffer, "%s/%s", path, entry.d_name);
+			post_recurse(recursion.buffer);
 		}
-		free(recursion.string);
+		free(recursion.buffer);
 		closedir(dir);
 	}
 }
@@ -75,10 +75,10 @@ static void post_check_and_run(const char *path)
 	for (struct post_s *post = config.post; post; post = post->next) {
 		for (size_t i = 0; i < sizeof(config.root) / sizeof(config.root[0]); i++) {
 			if (config.root[i].string) {
-				size_t size = config.root[i].length + sizeof("/") + post->file.length;
+				size_t size = config.root[i].length + sizeof("/") + post->pattern.length;
 				scratchpad_alloc(&config.scratchpad, size);
-				sprintf(config.scratchpad.string, "%s/%s", config.root[i].string, post->file.string);
-				if (fnmatch(config.scratchpad.string, path, FNM_PATHNAME) == 0) {
+				sprintf(config.scratchpad.buffer, "%s/%s", config.root[i].string, post->pattern.string);
+				if (fnmatch(config.scratchpad.buffer, path, FNM_PATHNAME) == 0) {
 
 					// match found, run the post command
 					pid_t pid = fork();

@@ -14,12 +14,12 @@ extern struct config_s {
 	char *search_path;
 	struct string_s root[2];
 	struct post_s {
-		struct string_s file;
+		struct string_s pattern;
 		char *command;
 		struct post_s *next;
 	} *post;
 	struct buffer_s {
-		char *string;
+		char *buffer;
 		size_t size;
 	} scratchpad;
 } config;
@@ -28,8 +28,8 @@ static inline void scratchpad_alloc(struct buffer_s *scratchpad, size_t size)
 {
 	if (scratchpad->size < size) {
 		size = (size + 1024) & ~1023;
-		scratchpad->string = realloc(scratchpad->string, size);
-		assert(scratchpad->string);
+		scratchpad->buffer = realloc(scratchpad->buffer, size);
+		assert(scratchpad->buffer);
 		scratchpad->size = size;
 	}
 }

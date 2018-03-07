@@ -41,14 +41,14 @@ static struct parse_s {
 	{ .type = ENTRY_POST, .pattern = "^#post *= *Path *.*" }
 };
 #pragma clang diagnostic pop
-static struct buffer_s argument = { .string = NULL, .size = 0 };
+static struct buffer_s argument = { .buffer = NULL, .size = 0 };
 
 struct config_s config = {
 	.lock = PTHREAD_MUTEX_INITIALIZER,
 	.search_path = NULL,
 	.root = { { .string = NULL, .length = 0 }, { .string = NULL, .length = 0 } },
 	.post = NULL,
-	.scratchpad = { .string = NULL, .size = 0 }
+	.scratchpad = { .buffer = NULL, .size = 0 }
 };
 
 static IMP previous_implementation;
@@ -115,7 +115,7 @@ static void *profile_intercept(id self, SEL command, void *arg1)
 static void __attribute__((destructor)) finalize(void)
 {
 	free((void *)config_pattern);
-	free(argument.string);
+	free(argument.buffer);
 	reset_config();
 }
 
@@ -150,7 +150,7 @@ int config_open(const char *path, int flags, ...)
 					config_parse(&parse[i], '\n');
 				}
 				scratchpad_alloc(&argument, 1);
-				argument.string[0] = '\0';
+				argument.buffer[0] = '\0';
 			}
 		}
 	}
@@ -200,10 +200,10 @@ static void config_parse(struct parse_s *parser, char character)
 			break;
 		case '.':
 			if (character != '\n') {
-				size_t length = strlen(argument.string);
+				size_t length = strlen(argument.buffer);
 				scratchpad_alloc(&argument, length + 1);
-				argument.string[length + 0] = character;
-				argument.string[length + 1] = '\0';
+				argument.buffer[length + 0] = character;
+				argument.buffer[length + 1] = '\0';
 				parser->seen++;
 			} else if (parser->seen) {
 				parser->seen = 0;
@@ -238,16 +238,16 @@ static void config_parse(struct parse_s *parser, char character)
 
 static void process_entry(enum entry_type type)
 {
-	if (!argument.string) return;
+	if (!argument.buffer) return;
 
-	for (char *c = argument.string + strlen(argument.string) - 1; c > argument.string; c--)
+	for (char *c = argument.buffer + strlen(argument.buffer) - 1; c > argument.buffer; c--)
 		if (*c == ' ') *c = '\0';
 		else break;
 
 	char *attribute = NULL;
-	char *separator = strstr(argument.string, " -> ");
+	char *separator = strstr(argument.buffer, " -> ");
 	if (separator) {
-		for (char *c = separator; c > argument.string; c--)
+		for (char *c = separator; c > argument.buffer; c--)
 			if (*c == ' ') *c = '\0';
 			else break;
 		for (attribute = separator + sizeof(' -> '); *attribute != '\0'; attribute++)
@@ -256,17 +256,17 @@ static void process_entry(enum entry_type type)
 
 	switch (type) {
 		case ENTRY_ROOT:
-			if (argument.string[0] != '/') break;
-			for (char *c = argument.string + strlen(argument.string) - 1; c > argument.string; c--)
+			if (argument.buffer[0] != '/') break;
+			for (char *c = argument.buffer + strlen(argument.buffer) - 1; c > argument.buffer; c--)
 				if (*c == '/') *c = '\0';
 				else break;
 			pthread_mutex_lock(&config.lock);
 			if (!config.root[0].string) {
-				config.root[0].string = strdup(argument.string);
-				config.root[0].length = strlen(argument.string);
+				config.root[0].string = strdup(argument.buffer);
+				config.root[0].length = strlen(argument.buffer);
 			} else if (!config.root[1].string) {
-				config.root[1].string = strdup(argument.string);
-				config.root[1].length = strlen(argument.string);
+				config.root[1].string = strdup(argument.buffer);
+				config.root[1].length = strlen(argument.buffer);
 			}
 			pthread_mutex_unlock(&config.lock);
 			break;
@@ -275,8 +275,8 @@ static void process_entry(enum entry_type type)
 			if (!attribute) break;
 			struct post_s *new_post = malloc(sizeof(struct post_s));
 			if (!new_post) break;
-			new_post->file.string = strdup(argument.string);
-			new_post->file.length = strlen(argument.string);
+			new_post->pattern.string = strdup(argument.buffer);
+			new_post->pattern.length = strlen(argument.buffer);
 			new_post->command = strdup(attribute);
 			pthread_mutex_lock(&config.lock);
 			new_post->next = config.post;
@@ -285,7 +285,7 @@ static void process_entry(enum entry_type type)
 			break;
 	}
 
-	argument.string[0] = '\0';
+	argument.buffer[0] = '\0';
 }
 
 static void reset_config(void)
@@ -297,7 +297,7 @@ static void reset_config(void)
 		config.root[i].length = 0;
 	}
 	for (struct post_s *post = config.post; post;) {
-		free((void *)post->file.string);
+		free((void *)post->pattern.string);
 		free((void *)post->command);
 		struct post_s *save_post = post;
 		post = post->next;
