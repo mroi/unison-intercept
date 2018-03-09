@@ -17,7 +17,7 @@
 #define UNISON_DIR2 "Library/Application Support/Unison"
 
 enum entry_type {
-	ENTRY_ROOT, ENTRY_POST
+	ENTRY_ROOT, ENTRY_POST_PATH
 };
 
 
@@ -38,7 +38,7 @@ static struct parse_s {
 	 *  . - matches anything, stores in argument buffer
 	 *    - space also matches tab */
 	{ .type = ENTRY_ROOT, .pattern = "^root *= *.*" },
-	{ .type = ENTRY_POST, .pattern = "^#post *= *Path *.*" }
+	{ .type = ENTRY_POST_PATH, .pattern = "^#post *= *Path *.*" },
 };
 #pragma clang diagnostic pop
 static struct buffer_s argument = { .buffer = NULL, .size = 0 };
@@ -271,7 +271,7 @@ static void process_entry(enum entry_type type)
 			pthread_mutex_unlock(&config.lock);
 			break;
 
-		case ENTRY_POST:
+		case ENTRY_POST_PATH:
 			if (!attribute) break;
 			struct post_s *new_post = malloc(sizeof(struct post_s));
 			if (!new_post) break;
