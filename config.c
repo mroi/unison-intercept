@@ -114,7 +114,7 @@ static void *profile_intercept(id self, SEL command, void *arg1)
 
 static void __attribute__((destructor)) finalize(void)
 {
-	free((void *)config_pattern);
+	free(config_pattern);
 	free(argument.buffer);
 	reset_config();
 }
@@ -292,13 +292,13 @@ static void reset_config(void)
 {
 	pthread_mutex_lock(&config.lock);
 	for (size_t i = 0; i < sizeof(config.root) / sizeof(config.root[0]); i++) {
-		free((void *)config.root[i].string);
+		free(config.root[i].string);
 		config.root[i].string = NULL;
 		config.root[i].length = 0;
 	}
 	for (struct post_s *post = config.post; post;) {
-		free((void *)post->pattern.string);
-		free((void *)post->command);
+		free(post->pattern.string);
+		free(post->command);
 		struct post_s *save_post = post;
 		post = post->next;
 		free(save_post);
