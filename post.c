@@ -87,17 +87,35 @@ static void post_check(const char *path)
 	pthread_mutex_unlock(&config.lock);
 }
 
-static void post_run(const char *command, const char *path)
+static void post_run(const char *const_command, const char *path)
 {
+	char *command = strdup(const_command);
+	size_t length = strlen(const_command);
+
+	// separate command string at spaces into arguments
+	unsigned num_spaces = 0;
+	for (size_t i = 0; i < length; i++)
+		if (command[i] == ' ') num_spaces++;
+
+	const char ** const arguments = malloc((num_spaces + 3) * sizeof(char *));
+
+	size_t arg = 0;
+	for (size_t i = 0; i < length; i++) {
+		if (command[i] == ' ') command[i] = '\0';
+		if (i == 0 || command[i-1] == '\0') {
+			arguments[arg] = command + i;
+			if (command[i] != '\0') arg++;  // handle multiple spaces
+		}
+	}
+	arguments[arg++] = path;
+	arguments[arg++] = NULL;
+
 	pid_t pid = fork();
 	if (pid == 0) {
 		// child
-		const char * const arguments[] = {
-			command, path, NULL
-		};
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-qual"
-		execvP(command, config.search_path, (char * const *)arguments);
+		execvP(command, config.search_path, (char **)arguments);
 #pragma clang diagnostic pop
 		_exit(EX_UNAVAILABLE);
 	} else if (pid > 0) {
@@ -106,4 +124,7 @@ static void post_run(const char *command, const char *path)
 	} else {
 		fputs("failed to execute post command\n", stderr);
 	}
+
+	free(arguments);
+	free(command);
 }
