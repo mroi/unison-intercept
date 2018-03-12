@@ -114,9 +114,12 @@ static void *profile_intercept(id self, SEL command, void *arg1)
 
 static void __attribute__((destructor)) finalize(void)
 {
+	reset_config();
+	free(config.search_path);
+	free(config.scratchpad.buffer);
+
 	free(config_pattern);
 	free(argument.buffer);
-	reset_config();
 }
 
 
