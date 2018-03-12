@@ -13,7 +13,8 @@
 
 
 static void post_recurse(const char *path);
-static void post_check_and_run(const char *path);
+static void post_check(const char *path);
+static void post_run(const char *command, const char *path);
 
 
 /* MARK: - Intercepted Functions */
@@ -30,7 +31,7 @@ int post_unlink(const char *path)
 {
 	int result = unlink(path);
 	if (result == 0)
-		post_check_and_run(path);
+		post_check(path);
 	return result;
 }
 
@@ -38,7 +39,7 @@ int post_rmdir(const char *path)
 {
 	int result = rmdir(path);
 	if (result == 0)
-		post_check_and_run(path);
+		post_check(path);
 	return result;
 }
 
@@ -47,7 +48,7 @@ int post_rmdir(const char *path)
 
 static void post_recurse(const char *path)
 {
-	post_check_and_run(path);
+	post_check(path);
 
 	struct stat statbuf;
 	if (lstat(path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
@@ -69,7 +70,7 @@ static void post_recurse(const char *path)
 	}
 }
 
-static void post_check_and_run(const char *path)
+static void post_check(const char *path)
 {
 	pthread_mutex_lock(&config.lock);
 	for (struct post_s *post = config.post; post; post = post->next) {
@@ -78,29 +79,31 @@ static void post_check_and_run(const char *path)
 				size_t size = config.root[i].length + sizeof("/") + post->pattern.length;
 				scratchpad_alloc(&config.scratchpad, size);
 				sprintf(config.scratchpad.buffer, "%s/%s", config.root[i].string, post->pattern.string);
-				if (fnmatch(config.scratchpad.buffer, path, FNM_PATHNAME) == 0) {
-
-					// match found, run the post command
-					pid_t pid = fork();
-					if (pid == 0) {
-						// child
-						const char * const arguments[] = {
-							post->command, path, NULL
-						};
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-qual"
-						execvP(post->command, config.search_path, (char * const *)arguments);
-#pragma clang diagnostic pop
-						_exit(EX_UNAVAILABLE);
-					} else if (pid > 0) {
-						// parent
-						waitpid(pid, NULL, 0);
-					} else {
-						fputs("failed to execute post command\n", stderr);
-					}
-				}
+				if (fnmatch(config.scratchpad.buffer, path, FNM_PATHNAME) == 0)
+					post_run(post->command, path);
 			}
 		}
 	}
 	pthread_mutex_unlock(&config.lock);
+}
+
+static void post_run(const char *command, const char *path)
+{
+	pid_t pid = fork();
+	if (pid == 0) {
+		// child
+		const char * const arguments[] = {
+			command, path, NULL
+		};
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-qual"
+		execvP(command, config.search_path, (char * const *)arguments);
+#pragma clang diagnostic pop
+		_exit(EX_UNAVAILABLE);
+	} else if (pid > 0) {
+		// parent
+		waitpid(pid, NULL, 0);
+	} else {
+		fputs("failed to execute post command\n", stderr);
+	}
 }
