@@ -16,7 +16,7 @@
 #define UNISON_DIR2 "Library/Application Support/Unison"
 
 enum entry_type {
-	ENTRY_ROOT, ENTRY_POST_PATH
+	ENTRY_ROOT, ENTRY_POST_PATH, ENTRY_POST_CMD
 };
 
 
@@ -38,6 +38,7 @@ static struct parse_s {
 	 *    - space also matches tab */
 	{ .type = ENTRY_ROOT, .pattern = "^root *= *.*" },
 	{ .type = ENTRY_POST_PATH, .pattern = "^#post *= *Path *.*" },
+	{ .type = ENTRY_POST_CMD, .pattern = "^#postcmd *= *.*" }
 };
 #pragma clang diagnostic pop
 static struct buffer_s argument = { .buffer = NULL, .size = 0 };
@@ -46,6 +47,7 @@ struct config_s config = {
 	.lock = PTHREAD_MUTEX_INITIALIZER,
 	.search_path = NULL,
 	.root = { { .string = NULL, .length = 0 }, { .string = NULL, .length = 0 } },
+	.post_command = NULL,
 	.post = NULL,
 	.scratchpad = { .buffer = NULL, .size = 0 }
 };
@@ -266,6 +268,14 @@ static void process_entry(enum entry_type type)
 			config.post = new_post;
 			pthread_mutex_unlock(&config.lock);
 			break;
+
+		case ENTRY_POST_CMD:
+			if (argument.buffer[0] == '\0') break;
+			pthread_mutex_lock(&config.lock);
+			if (config.post_command) free(config.post_command);
+			config.post_command = strdup(argument.buffer);
+			pthread_mutex_unlock(&config.lock);
+			break;
 	}
 
 	argument.buffer[0] = '\0';
@@ -274,11 +284,16 @@ static void process_entry(enum entry_type type)
 void config_reset(void)
 {
 	pthread_mutex_lock(&config.lock);
+
 	for (size_t i = 0; i < sizeof(config.root) / sizeof(config.root[0]); i++) {
 		free(config.root[i].string);
 		config.root[i].string = NULL;
 		config.root[i].length = 0;
 	}
+
+	free(config.post_command);
+	config.post_command = NULL;
+
 	for (struct post_s *post = config.post; post;) {
 		free(post->pattern.string);
 		free(post->command);
@@ -287,6 +302,8 @@ void config_reset(void)
 		free(save_post);
 	}
 	config.post = NULL;
+
 	config_mode = true;
+
 	pthread_mutex_unlock(&config.lock);
 }
