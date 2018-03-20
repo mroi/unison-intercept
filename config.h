@@ -38,3 +38,5 @@ static inline void scratchpad_alloc(struct buffer_s *scratchpad, size_t size)
 int config_open(const char *path, int flags, ...);
 int config_close(int fd);
 ssize_t config_read(int fd, void *buf, size_t bytes);
+
+void config_reset(void);

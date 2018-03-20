@@ -14,6 +14,7 @@
 #include <dlfcn.h>
 
 #include <SystemConfiguration/SystemConfiguration.h>
+#include <objc/runtime.h>
 
 #include "nocache.h"
 #include "config.h"
@@ -52,6 +53,10 @@ static inline void CONTEXT(enum intercept_id id)
 	pthread_setspecific(context, (void *)current_context)
 
 
+/* Objective-C method swizzling to intercept connections to a new profile */
+static IMP previous_implementation;
+static void *profile_intercept(id self, SEL command, void *arg1);
+
 static void __attribute__((constructor)) initialize(void)
 {
 	if (pthread_key_create(&context, NULL) != 0) abort();
@@ -68,6 +73,22 @@ static void __attribute__((constructor)) initialize(void)
 		free(name);
 		CFRelease(nameString);
 	}
+	
+	// Objective-C method swizzling
+	Class class = objc_getRequiredClass("MyController");
+	SEL selector = sel_registerName("connect:");
+	assert(class && selector);
+	Method method = class_getInstanceMethod(class, selector);
+	assert(method);
+	previous_implementation = method_setImplementation(method, (IMP)profile_intercept);
+	assert(previous_implementation);
+}
+
+static void *profile_intercept(id self, SEL command, void *arg1)
+{
+	// the user changed to a different Unison profile, call reset functions
+	config_reset();
+	previous_implementation(self, command, arg1);
 }
 
 

@@ -9,7 +9,6 @@
 #include <paths.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <objc/runtime.h>
 
 #include "config.h"
 
@@ -51,12 +50,8 @@ struct config_s config = {
 	.scratchpad = { .buffer = NULL, .size = 0 }
 };
 
-static IMP previous_implementation;
-static void *profile_intercept(id self, SEL command, void *arg1);
-
 static void config_parse(struct parse_s *parser, char character);
 static void process_entry(enum entry_type type);
-static void reset_config(void);
 
 
 static void __attribute__((constructor)) initialize(void)
@@ -95,26 +90,11 @@ static void __attribute__((constructor)) initialize(void)
 	// set pattern to detect opening of configuration files
 	strcat(config_prefix, "/*");
 	config_pattern = config_prefix;
-
-	// Objective-C method swizzling to intercept connections to a new profile
-	Class class = objc_getRequiredClass("MyController");
-	SEL selector = sel_registerName("connect:");
-	assert(class && selector);
-	Method method = class_getInstanceMethod(class, selector);
-	assert(method);
-	previous_implementation = method_setImplementation(method, (IMP)profile_intercept);
-	assert(previous_implementation);
-}
-
-static void *profile_intercept(id self, SEL command, void *arg1)
-{
-	reset_config();
-	previous_implementation(self, command, arg1);
 }
 
 static void __attribute__((destructor)) finalize(void)
 {
-	reset_config();
+	config_reset();
 	free(config.search_path);
 	free(config.scratchpad.buffer);
 
@@ -291,7 +271,7 @@ static void process_entry(enum entry_type type)
 	argument.buffer[0] = '\0';
 }
 
-static void reset_config(void)
+void config_reset(void)
 {
 	pthread_mutex_lock(&config.lock);
 	for (size_t i = 0; i < sizeof(config.root) / sizeof(config.root[0]); i++) {
