@@ -1,8 +1,10 @@
 #include <stdio.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
 #include <fnmatch.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <sysexits.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -11,7 +13,13 @@
 #include "config.h"
 #include "post.h"
 
+#define ARCHIVE_PATTERN "*/ar[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]"
 
+
+static char *current_archive = NULL;
+
+static void postcmd_remember_archive(const char *path);
+static void postcmd_check_finalize(const char *path);
 static void post_recurse(const char *path);
 static void post_check(const char *path);
 static void post_run(const char *command, const char *path);
@@ -19,8 +27,40 @@ static void post_run(const char *command, const char *path);
 
 /* MARK: - Intercepted Functions */
 
+int post_open(const char *path, int flags, ...)
+{
+	postcmd_remember_archive(path);
+
+	int result;
+	va_list arg;
+	va_start(arg, flags);
+
+	if (flags & O_CREAT) {
+		mode_t mode = va_arg(arg, int);
+		result = open(path, flags, mode);
+	} else {
+		result = open(path, flags);
+	}
+
+	va_end(arg);
+	return result;
+}
+
+int post_stat(const char * restrict path, struct stat * restrict buf)
+{
+	postcmd_remember_archive(path);
+	return stat(path, buf);
+}
+
+int post_lstat(const char * restrict path, struct stat * restrict buf)
+{
+	postcmd_remember_archive(path);
+	return lstat(path, buf);
+}
+
 int post_rename(const char *old, const char *new)
 {
+	postcmd_check_finalize(new);
 	int result = rename(old, new);
 	if (result == 0)
 		post_recurse(new);
@@ -29,6 +69,7 @@ int post_rename(const char *old, const char *new)
 
 int post_unlink(const char *path)
 {
+	postcmd_check_finalize(path);
 	int result = unlink(path);
 	if (result == 0)
 		post_check(path);
@@ -45,6 +86,23 @@ int post_rmdir(const char *path)
 
 
 /* MARK: - Helper Functions */
+
+static void postcmd_remember_archive(const char *path)
+{
+	if (config.post_command && !current_archive && fnmatch(ARCHIVE_PATTERN, path, 0) == 0)
+		current_archive = strdup(path);
+}
+
+static void postcmd_check_finalize(const char *path)
+{
+	if (config.post_command && current_archive && strcmp(path, current_archive) == 0) {
+		// final update to archive file, run post command
+		pthread_mutex_lock(&config.lock);
+		post_run(config.post_command, NULL);
+		pthread_mutex_unlock(&config.lock);
+		post_reset();
+	}
+}
 
 static void post_recurse(const char *path)
 {
@@ -127,4 +185,10 @@ static void post_run(const char *const_command, const char *path)
 
 	free(arguments);
 	free(command);
+}
+
+void post_reset(void)
+{
+	free(current_archive);
+	current_archive = NULL;
 }

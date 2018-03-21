@@ -93,6 +93,7 @@ static void *profile_intercept(id self, SEL command, void *arg1)
 {
 	// the user changed to a different Unison profile, call reset functions
 	config_reset();
+	post_reset();
 	previous_implementation(self, command, arg1);
 }
 
@@ -123,6 +124,12 @@ int open(const char *path, int flags, ...)
 				result = config_open(path, flags);
 			break;
 		case CONFIG:
+			CONTEXT(POST);
+			if (flags & O_CREAT)
+				result = post_open(path, flags, va_arg(arg, int));
+			else
+				result = post_open(path, flags);
+			break;
 		case POST:
 			CONTEXT(ORIGINAL);
 		case ORIGINAL:
@@ -196,6 +203,9 @@ int stat(const char * restrict path, struct stat * restrict buf)
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
+			CONTEXT(POST);
+			result = post_stat(path, buf);
+			break;
 		case POST:
 			CONTEXT(ORIGINAL);
 		case ORIGINAL:
@@ -217,6 +227,9 @@ int lstat(const char * restrict path, struct stat * restrict buf)
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
+			CONTEXT(POST);
+			result = post_lstat(path, buf);
+			break;
 		case POST:
 			CONTEXT(ORIGINAL);
 		case ORIGINAL:
