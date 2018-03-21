@@ -25,7 +25,11 @@
 #define ORIGINAL_SYMBOL(symbol, arguments) \
 	static int (*original_##symbol)arguments; \
 	if (!original_##symbol) { \
-		original_##symbol = (int (*)arguments)dlsym(RTLD_NEXT, #symbol); \
+		Dl_info info; \
+		/* retrieve internal symbol name of current function */ \
+		int result = dladdr((void *)symbol, &info); \
+		assert(result && info.dli_sname); \
+		original_##symbol = (int (*)arguments)dlsym(RTLD_NEXT, info.dli_sname); \
 		assert(original_##symbol); \
 	}
 
