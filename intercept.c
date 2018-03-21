@@ -10,7 +10,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <assert.h>
-#include <pthread.h>
 #include <dlfcn.h>
 
 #include <SystemConfiguration/SystemConfiguration.h>
@@ -34,8 +33,6 @@
 		assert(original_##symbol); \
 	}
 
-static pthread_key_t context;
-
 /* The intercept layers in use.
  * Thread-local storage remembers which one has been called. */
 enum intercept_id {
@@ -46,26 +43,15 @@ enum intercept_id {
 	ORIGINAL
 };
 
-#define PROLOG \
-	enum intercept_id current_context = (enum intercept_id)(void *)pthread_getspecific(context)
-
-static inline void CONTEXT(enum intercept_id id)
-{
-	pthread_setspecific(context, (void *)id);
-}
-
-#define EPILOG \
-	pthread_setspecific(context, (void *)current_context)
-
+static _Thread_local enum intercept_id context = NONE;
 
 /* Objective-C method swizzling to intercept connections to a new profile */
 static IMP previous_implementation;
 static void *profile_intercept(id self, SEL command, void *arg1);
 
+
 static void __attribute__((constructor)) initialize(void)
 {
-	if (pthread_key_create(&context, NULL) != 0) abort();
-
 	// set UNISONLOCALHOSTNAME to the local hostname
 	CFStringRef nameString = SCDynamicStoreCopyLocalHostName(NULL);
 	if (nameString) {
@@ -104,34 +90,34 @@ int open(const char *path, int flags, ...)
 {
 	ORIGINAL_SYMBOL(open, (const char *path, int flags, ...));
 	int result;
-	PROLOG;
+	enum intercept_id saved_context = context;
 
 	va_list arg;
 	va_start(arg, flags);
-	switch (current_context) {
+	switch (context) {
 		case NONE:
-			CONTEXT(NOCACHE);
+			context = NOCACHE;
 			if (flags & O_CREAT)
 				result = nocache_open(path, flags, va_arg(arg, int));
 			else
 				result = nocache_open(path, flags);
 			break;
 		case NOCACHE:
-			CONTEXT(CONFIG);
+			context = CONFIG;
 			if (flags & O_CREAT)
 				result = config_open(path, flags, va_arg(arg, int));
 			else
 				result = config_open(path, flags);
 			break;
 		case CONFIG:
-			CONTEXT(POST);
+			context = POST;
 			if (flags & O_CREAT)
 				result = post_open(path, flags, va_arg(arg, int));
 			else
 				result = post_open(path, flags);
 			break;
 		case POST:
-			CONTEXT(ORIGINAL);
+			context = ORIGINAL;
 		case ORIGINAL:
 			if (flags & O_CREAT)
 				result = original_open(path, flags, va_arg(arg, int));
@@ -141,7 +127,7 @@ int open(const char *path, int flags, ...)
 	}
 	va_end(arg);
 
-	EPILOG;
+	context = saved_context;
 	return result;
 }
 
@@ -149,23 +135,23 @@ int close(int fd)
 {
 	ORIGINAL_SYMBOL(close, (int fd));
 	int result;
-	PROLOG;
+	enum intercept_id saved_context = context;
 
-	switch (current_context) {
+	switch (context) {
 		case NONE:
 		case NOCACHE:
-			CONTEXT(CONFIG);
+			context = CONFIG;
 			result = config_close(fd);
 			break;
 		case CONFIG:
 		case POST:
-			CONTEXT(ORIGINAL);
+			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_close(fd);
 			break;
 	}
 
-	EPILOG;
+	context = saved_context;
 	return result;
 }
 
@@ -173,23 +159,23 @@ ssize_t read(int fd, void *buf, size_t bytes)
 {
 	ORIGINAL_SYMBOL(read, (int fd, void *buf, size_t bytes));
 	ssize_t result;
-	PROLOG;
+	enum intercept_id saved_context = context;
 
-	switch (current_context) {
+	switch (context) {
 		case NONE:
 		case NOCACHE:
-			CONTEXT(CONFIG);
+			context = CONFIG;
 			result = config_read(fd, buf, bytes);
 			break;
 		case CONFIG:
 		case POST:
-			CONTEXT(ORIGINAL);
+			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_read(fd, buf, bytes);
 			break;
 	}
 
-	EPILOG;
+	context = saved_context;
 	return result;
 }
 
@@ -197,23 +183,23 @@ int stat(const char * restrict path, struct stat * restrict buf)
 {
 	ORIGINAL_SYMBOL(stat, (const char * restrict path, struct stat * restrict buf));
 	int result;
-	PROLOG;
+	enum intercept_id saved_context = context;
 
-	switch (current_context) {
+	switch (context) {
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
-			CONTEXT(POST);
+			context = POST;
 			result = post_stat(path, buf);
 			break;
 		case POST:
-			CONTEXT(ORIGINAL);
+			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_stat(path, buf);
 			break;
 	}
 
-	EPILOG;
+	context = saved_context;
 	return result;
 }
 
@@ -221,23 +207,23 @@ int lstat(const char * restrict path, struct stat * restrict buf)
 {
 	ORIGINAL_SYMBOL(lstat, (const char * restrict path, struct stat * restrict buf));
 	int result;
-	PROLOG;
+	enum intercept_id saved_context = context;
 
-	switch (current_context) {
+	switch (context) {
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
-			CONTEXT(POST);
+			context = POST;
 			result = post_lstat(path, buf);
 			break;
 		case POST:
-			CONTEXT(ORIGINAL);
+			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_lstat(path, buf);
 			break;
 	}
 
-	EPILOG;
+	context = saved_context;
 	return result;
 }
 
@@ -245,23 +231,23 @@ int rename(const char *old, const char *new)
 {
 	ORIGINAL_SYMBOL(rename, (const char *old, const char *new));
 	int result;
-	PROLOG;
+	enum intercept_id saved_context = context;
 
-	switch (current_context) {
+	switch (context) {
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
-			CONTEXT(POST);
+			context = POST;
 			result = post_rename(old, new);
 			break;
 		case POST:
-			CONTEXT(ORIGINAL);
+			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_rename(old, new);
 			break;
 	}
 
-	EPILOG;
+	context = saved_context;
 	return result;
 }
 
@@ -269,23 +255,23 @@ int unlink(const char *path)
 {
 	ORIGINAL_SYMBOL(unlink, (const char *path));
 	int result;
-	PROLOG;
+	enum intercept_id saved_context = context;
 
-	switch (current_context) {
+	switch (context) {
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
-			CONTEXT(POST);
+			context = POST;
 			result = post_unlink(path);
 			break;
 		case POST:
-			CONTEXT(ORIGINAL);
+			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_unlink(path);
 			break;
 	}
 
-	EPILOG;
+	context = saved_context;
 	return result;
 }
 
@@ -293,22 +279,22 @@ int rmdir(const char *path)
 {
 	ORIGINAL_SYMBOL(rmdir, (const char *path));
 	int result;
-	PROLOG;
+	enum intercept_id saved_context = context;
 
-	switch (current_context) {
+	switch (context) {
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
-			CONTEXT(POST);
+			context = POST;
 			result = post_rmdir(path);
 			break;
 		case POST:
-			CONTEXT(ORIGINAL);
+			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_rmdir(path);
 			break;
 	}
 
-	EPILOG;
+	context = saved_context;
 	return result;
 }
