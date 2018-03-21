@@ -50,7 +50,7 @@ struct config_s config = {
 	.scratchpad = { .buffer = NULL, .size = 0 }
 };
 
-static void config_parse(struct parse_s *parser, char character);
+static void config_parse(struct parse_s * restrict parser, char character);
 static void process_entry(enum entry_type type);
 
 
@@ -162,7 +162,7 @@ ssize_t config_read(int fd, void *buf, size_t bytes)
 
 /* MARK: - Helper Functions */
 
-static void config_parse(struct parse_s *parser, char character)
+static void config_parse(struct parse_s * restrict parser, char character)
 {
 	switch (parser->pattern[parser->seen]) {
 		case '^':
