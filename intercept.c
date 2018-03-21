@@ -21,6 +21,7 @@
 #include "post.h"
 
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #define ORIGINAL_SYMBOL(symbol, arguments) \
 	static int (*original_##symbol)arguments; \
@@ -178,6 +179,48 @@ ssize_t read(int fd, void *buf, size_t bytes)
 			CONTEXT(ORIGINAL);
 		case ORIGINAL:
 			result = original_read(fd, buf, bytes);
+			break;
+	}
+
+	EPILOG;
+	return result;
+}
+
+int stat(const char * restrict path, struct stat * restrict buf)
+{
+	ORIGINAL_SYMBOL(stat, (const char * restrict path, struct stat * restrict buf));
+	int result;
+	PROLOG;
+
+	switch (current_context) {
+		case NONE:
+		case NOCACHE:
+		case CONFIG:
+		case POST:
+			CONTEXT(ORIGINAL);
+		case ORIGINAL:
+			result = original_stat(path, buf);
+			break;
+	}
+
+	EPILOG;
+	return result;
+}
+
+int lstat(const char * restrict path, struct stat * restrict buf)
+{
+	ORIGINAL_SYMBOL(lstat, (const char * restrict path, struct stat * restrict buf));
+	int result;
+	PROLOG;
+
+	switch (current_context) {
+		case NONE:
+		case NOCACHE:
+		case CONFIG:
+		case POST:
+			CONTEXT(ORIGINAL);
+		case ORIGINAL:
+			result = original_lstat(path, buf);
 			break;
 	}
 
