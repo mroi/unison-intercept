@@ -22,7 +22,7 @@ int nocache_open(const char *path, int flags, ...)
 	va_start(arg, flags);
 
 	if (flags & O_CREAT) {
-		mode_t mode = va_arg(arg, int);
+		mode_t mode = (mode_t)va_arg(arg, unsigned);
 		result = open(path, flags, mode);
 	} else {
 		result = open(path, flags);

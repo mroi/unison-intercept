@@ -115,7 +115,7 @@ int config_open(const char *path, int flags, ...)
 	va_start(arg, flags);
 
 	if (flags & O_CREAT) {
-		mode_t mode = va_arg(arg, int);
+		mode_t mode = (mode_t)va_arg(arg, unsigned);
 		result = open(path, flags, mode);
 	} else {
 		result = open(path, flags);
@@ -236,7 +236,7 @@ static void process_entry(enum entry_type type)
 		for (char *c = separator; c > argument.buffer; c--)
 			if (*c == ' ') *c = '\0';
 			else break;
-		for (attribute = separator + sizeof(' -> '); *attribute != '\0'; attribute++)
+		for (attribute = separator + sizeof(" ->"); *attribute != '\0'; attribute++)
 			if (*attribute != ' ') break;
 	}
 
