@@ -1,6 +1,6 @@
 /* libSystem intercept layer that tracks changed files and runs post scripts */
 
-#include <sys/stat.h>
+struct stat;
 
 int post_open(const char *path, int flags, ...);
 int post_stat(const char * restrict path, struct stat * restrict buf);

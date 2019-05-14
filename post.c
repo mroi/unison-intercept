@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 #include <fnmatch.h>
 #include <dirent.h>
 #include <fcntl.h>

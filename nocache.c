@@ -1,7 +1,7 @@
-#include <stdio.h>
 #include <stdarg.h>
 #include <fcntl.h>
 #include <sys/resource.h>
+#include <sys/types.h>
 
 #include "nocache.h"
 

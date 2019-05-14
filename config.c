@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <assert.h>
 #include <fnmatch.h>
 #include <paths.h>

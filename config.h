@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <pthread.h>
+#include <sys/types.h>
 
 struct string_s {
 	char *string;

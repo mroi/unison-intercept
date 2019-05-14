@@ -19,8 +19,11 @@
 #include "config.h"
 #include "post.h"
 
+#include <stdio.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #define ORIGINAL_SYMBOL(symbol, arguments) \
 	static int (*original_##symbol)arguments; \
