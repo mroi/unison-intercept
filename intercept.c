@@ -1,19 +1,22 @@
-/* Stacked libSystem intercept.
+/* stacked libSystem/libc intercept
  *
- * All libSystem functions can be replaced with a new implementation. A per-thread
- * context identifier allows calling the intercepted libSystem functions without
- * running into an endless recursion. Instead, the next layer of intercepts will
- * be called, with the lowest layer being the original libSystem code.
+ * All libSystem/libc functions can be replaced with a new implementation. A
+ * per-thread context identifier allows calling the intercepted libSystem/libc
+ * functions without running into an endless recursion. Instead, the next layer
+ * of intercepts will be called, with the lowest layer being the original
+ * libSystem/libc code.
  */
 
 #include <stdlib.h>
 #include <stdarg.h>
-#include <string.h>
 #include <assert.h>
 #include <dlfcn.h>
 
+#ifdef __APPLE__
+#include <string.h>
 #include <SystemConfiguration/SystemConfiguration.h>
 #include <objc/runtime.h>
+#endif
 
 #include "nocache.h"
 #include "config.h"
@@ -48,10 +51,12 @@ enum intercept_id {
 
 static _Thread_local enum intercept_id context = NONE;
 
+
+#ifdef __APPLE__
+
 /* Objective-C method swizzling to intercept connections to a new profile */
 static IMP previous_implementation;
 static void *profile_intercept(id self, SEL command, void *arg1);
-
 
 static void __attribute__((constructor)) initialize(void)
 {
@@ -67,7 +72,7 @@ static void __attribute__((constructor)) initialize(void)
 		free(name);
 		CFRelease(nameString);
 	}
-	
+
 	// Objective-C method swizzling
 	Class class = objc_getRequiredClass("MyController");
 	SEL selector = sel_registerName("connect:");
@@ -85,6 +90,8 @@ static void *profile_intercept(id self, SEL command, void *arg1)
 	post_reset();
 	previous_implementation(self, command, arg1);
 }
+
+#endif
 
 
 /* MARK: - Intercepted Functions */

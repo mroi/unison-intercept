@@ -1,4 +1,4 @@
-/* libSystem intercept layer that parses config files as they are read by Unison */
+/* intercept layer that parses config files as they are read by Unison */
 
 #include <stdlib.h>
 #include <assert.h>

@@ -5,7 +5,7 @@ I use the [Unison](https://www.seas.upenn.edu/~bcpierce/unison/) file synchroniz
 to keep files between multiple machines and servers up to date. However, I wanted to 
 customize some aspects of Unison’s behavior. Because I did not want to make invasive changes 
 to its codebase, I decided to amend Unison’s functionality from the outside by intercepting 
-its use of the C-level `libSystem` APIs.
+its use of the C-level `libSystem` (`libc` on Linux and other Unixes) APIs.
 
 This project provides a `libintercept.dylib` library, which re-exports all of `libSystem` 
 and can therefore replace it. Selected API calls are replaced or extended with my own 
@@ -17,6 +17,10 @@ configured to my personal needs. A release build will place `libintercept.dylib`
 Unison bundle and modify Unison with `install_name_tool` to link against 
 `libintercept.dylib` instead of `libSystem`. The build will also attempt to sign the 
 resulting executables.
+
+For Linux and other Unixes, the enclosed `Makefile` builds and installs an equivalent 
+`libintercept.so`, which can be activated by setting the `LD_PRELOAD` environment variable 
+when launching Unison.
 
 Currently, three intercept layers are provided, which add the following features to Unison:
 

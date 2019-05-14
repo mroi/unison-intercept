@@ -1,4 +1,4 @@
-/* libSystem intercept layer that tracks changed files and runs post scripts */
+/* intercept layer that tracks changed files and runs post scripts */
 
 struct stat;
 
