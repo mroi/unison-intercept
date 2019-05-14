@@ -33,7 +33,8 @@ additional configuration options used by other intercepts. All additional option
 
 **post**  
 Runs post processing commands whenever a specified file is changed. This step is configured 
-using lines of the form `#post = Path PATH -> COMMAND`.
+using lines of the form `#post = Path PATH -> COMMAND`. Global post commands, which execute 
+once synchronization is fully completed, are configured as `#postcmd = COMMAND`.
 
 This work is licensed under the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html) or 
 higher.
