@@ -1,3 +1,5 @@
+ifneq ($(shell uname),Darwin)
+
 TGT = libintercept.so
 SRC = $(wildcard *.c)
 OBJ = $(SRC:.c=.o)
@@ -17,3 +19,12 @@ clean:
 
 $(TGT): $(OBJ)
 	ld -shared -o $(TGT) $^
+
+else
+
+all: build
+
+build install clean:
+	xcodebuild $@
+
+endif
