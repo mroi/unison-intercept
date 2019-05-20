@@ -42,7 +42,7 @@
 /* The intercept layers in use.
  * Thread-local storage remembers which one has been called. */
 enum intercept_id {
-	NONE = 0,
+	NONE,
 	NOCACHE,   // disable caching of file writes
 	CONFIG,    // process our own entries in Unison config files
 	POST,      // execute post scripts when files change
