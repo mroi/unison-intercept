@@ -18,7 +18,7 @@ clean:
 	rm -f $(TGT) $(OBJ)
 
 $(TGT): $(OBJ)
-	ld -shared -o $(TGT) $^
+	$(CC) -shared -o $@ $^ -ldl
 
 else
 
