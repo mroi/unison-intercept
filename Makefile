@@ -1,24 +1,30 @@
 ifneq ($(shell uname),Darwin)
 
-TGT = libintercept.so
-SRC = $(wildcard *.c)
+INT = libintercept.so
+SBX = libsandbox.so
+SRC = $(filter-out sandbox.c,$(wildcard *.c))
 OBJ = $(SRC:.c=.o)
 
 CFLAGS = -std=c11 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -O3 -fPIC $(WARNINGS)
-WARNINGS = -Weverything -Wno-static-in-inline
+WARNINGS = -Weverything -Wno-static-in-inline -Wno-gnu-label-as-value
 
-.PHONY: all install clean
+.PHONY: intercept sandbox all install clean
 
-all: $(TGT)
+intercept: $(INT)
+sandbox: $(SBX)
+all: $(INT) $(SBX)
 
-install: all
-	cp $(TGT) ~/.unison/
+install: intercept
+	cp $(INT) ~/.unison/
 
 clean:
-	rm -f $(TGT) $(OBJ)
+	rm -f $(INT) $(SBX) $(OBJ) sandbox.o
 
-$(TGT): $(OBJ)
+$(INT): $(OBJ)
 	$(CC) -shared -o $@ $^ -ldl
+
+$(SBX): sandbox.c
+	@CC="$(CC)" CFLAGS="$(CFLAGS)" sh $<
 
 else
 
