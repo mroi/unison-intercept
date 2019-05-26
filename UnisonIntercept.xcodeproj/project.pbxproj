@@ -197,7 +197,10 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INSTALL_GROUP = admin;
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
-				WARNING_CFLAGS = "-Weverything";
+				WARNING_CFLAGS = (
+					"-Weverything",
+					"-Wno-gnu-label-as-value",
+				);
 			};
 			name = Debug;
 		};
@@ -211,7 +214,10 @@
 				GCC_C_LANGUAGE_STANDARD = c11;
 				INSTALL_GROUP = admin;
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
-				WARNING_CFLAGS = "-Weverything";
+				WARNING_CFLAGS = (
+					"-Weverything",
+					"-Wno-gnu-label-as-value",
+				);
 			};
 			name = Release;
 		};

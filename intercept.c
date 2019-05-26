@@ -30,10 +30,16 @@
 
 #define ORIGINAL_SYMBOL(symbol, arguments) \
 	static int (*original_##symbol)arguments; \
-	if (!original_##symbol) { \
+	local: if (!original_##symbol) { \
 		Dl_info info; \
-		/* retrieve internal symbol name of current function */ \
-		int result = dladdr((void *)symbol, &info); \
+		/* retrieve internal symbol name of current function
+		 * We cannot use the symbol argument directly, because it may be altered
+		 * by defines in headers like ‘open’ to ‘open64’. We also cannot use a
+		 * pointer to the current function with dladdr(), because it points into
+		 * a dynamic linking table on some architectures (Solaris) and thus dladdr()
+		 * yields no useful symbol name. Our only chance is a pointer to a local
+		 * label, which is a GNU extension, but apparently the only portable way. */ \
+		int result = dladdr(&&local, &info); \
 		assert(result && info.dli_sname); \
 		original_##symbol = (int (*)arguments)dlsym(RTLD_NEXT, info.dli_sname); \
 		assert(original_##symbol); \
