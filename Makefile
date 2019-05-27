@@ -4,6 +4,7 @@ INT = libintercept.so
 SBX = libsandbox.so
 SRC = $(filter-out sandbox.c,$(wildcard *.c))
 OBJ = $(SRC:.c=.o)
+TGT = $(HOME)/.unison/$(INT)
 
 CFLAGS = -std=c11 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -O3 -fPIC $(WARNINGS)
 WARNINGS = -Weverything -Wno-static-in-inline -Wno-gnu-label-as-value
@@ -13,9 +14,7 @@ WARNINGS = -Weverything -Wno-static-in-inline -Wno-gnu-label-as-value
 intercept: $(INT)
 sandbox: $(SBX)
 all: $(INT) $(SBX)
-
-install: intercept
-	cp $(INT) ~/.unison/
+install: $(TGT)
 
 clean:
 	rm -f $(INT) $(SBX) $(OBJ) sandbox.o
@@ -25,6 +24,9 @@ $(INT): $(OBJ)
 
 $(SBX): sandbox.c
 	@CC="$(CC)" CFLAGS="$(CFLAGS)" sh $<
+
+$(TGT): $(INT)
+	cp $< $@
 
 else
 
