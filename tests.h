@@ -1,0 +1,12 @@
+#include <fcntl.h>
+#include "config.h"
+
+/* Because open() is variadic in C, it is imported differently into Swift,
+ * causing the intercept to not function properly. Instead, we provide non-
+ * variadic wrappers for open. */
+int open2(const char *path, int flags) __attribute__((nonnull(1),swift_name("interceptOpen(_:_:)")));
+
+int open2(const char *path, int flags)
+{
+	return open(path, flags);
+}

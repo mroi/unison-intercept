@@ -17,7 +17,19 @@
 		4C0DE43E202B5E8F00599E41 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0DE43D202B5E8F00599E41 /* SystemConfiguration.framework */; };
 		4C0DE440202B631800599E41 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0DE43F202B631800599E41 /* CoreFoundation.framework */; };
 		4C12B0A9204D9CBD009DFC09 /* libobjc.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C12B0A8204D9CBD009DFC09 /* libobjc.tbd */; };
+		4CA5AD7E22B6AB6E00CDC63B /* tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB6F39722B6A4B500A00839 /* tests.swift */; };
+		4CB6F39A22B6A4B500A00839 /* libintercept.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0DE428202B56AD00599E41 /* libintercept.dylib */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4CB6F39B22B6A4B500A00839 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4C0DE41E202B561400599E41 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4C0DE427202B56AD00599E41;
+			remoteInfo = intercept;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		4C0DE428202B56AD00599E41 /* libintercept.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libintercept.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -31,8 +43,11 @@
 		4C0DE43D202B5E8F00599E41 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		4C0DE43F202B631800599E41 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		4C12B0A8204D9CBD009DFC09 /* libobjc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libobjc.tbd; path = usr/lib/libobjc.tbd; sourceTree = SDKROOT; };
+		4C2840EC22C2B9B5006D457C /* tests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tests.h; sourceTree = "<group>"; };
 		4C2D270E2299C68800D78D42 /* sandbox.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sandbox.c; sourceTree = "<group>"; };
 		4C2D270F2299C68800D78D42 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		4CB6F39522B6A4B500A00839 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4CB6F39722B6A4B500A00839 /* tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tests.swift; sourceTree = "<group>"; };
 		4CC7B4AA202D965D00120D99 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		4CC7B4AB202D965E00120D99 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -48,6 +63,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4CB6F39222B6A4B500A00839 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4CB6F39A22B6A4B500A00839 /* libintercept.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -60,6 +83,8 @@
 				4C0DE42F202B5ACE00599E41 /* Intercepts */,
 				4C2D270F2299C68800D78D42 /* Makefile */,
 				4C2D270E2299C68800D78D42 /* sandbox.c */,
+				4C2840EC22C2B9B5006D457C /* tests.h */,
+				4CB6F39722B6A4B500A00839 /* tests.swift */,
 				4C0DE43C202B5E8F00599E41 /* Frameworks */,
 				4C0DE429202B56AD00599E41 /* Products */,
 			);
@@ -69,6 +94,7 @@
 			isa = PBXGroup;
 			children = (
 				4C0DE428202B56AD00599E41 /* libintercept.dylib */,
+				4CB6F39522B6A4B500A00839 /* Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -130,16 +156,38 @@
 			productReference = 4C0DE428202B56AD00599E41 /* libintercept.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
+		4CB6F39422B6A4B500A00839 /* Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4CB6F39F22B6A4B500A00839 /* Build configuration list for PBXNativeTarget "Tests" */;
+			buildPhases = (
+				4CB6F39122B6A4B500A00839 /* Sources */,
+				4CB6F39222B6A4B500A00839 /* Frameworks */,
+				4CB6F39322B6A4B500A00839 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4CB6F39C22B6A4B500A00839 /* PBXTargetDependency */,
+			);
+			name = Tests;
+			productName = Tests;
+			productReference = 4CB6F39522B6A4B500A00839 /* Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		4C0DE41E202B561400599E41 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 1020;
 				LastUpgradeCheck = 1020;
 				TargetAttributes = {
 					4C0DE427202B56AD00599E41 = {
 						CreatedOnToolsVersion = 9.2;
+					};
+					4CB6F39422B6A4B500A00839 = {
+						CreatedOnToolsVersion = 10.2.1;
 					};
 				};
 			};
@@ -148,6 +196,7 @@
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				en,
 				Base,
 			);
 			mainGroup = 4C0DE41D202B561400599E41;
@@ -156,9 +205,20 @@
 			projectRoot = "";
 			targets = (
 				4C0DE427202B56AD00599E41 /* intercept */,
+				4CB6F39422B6A4B500A00839 /* Tests */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4CB6F39322B6A4B500A00839 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		4C08F4E1202CB3B4001F710D /* ShellScript */ = {
@@ -189,7 +249,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4CB6F39122B6A4B500A00839 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4CA5AD7E22B6AB6E00CDC63B /* tests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4CB6F39C22B6A4B500A00839 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4C0DE427202B56AD00599E41 /* intercept */;
+			targetProxy = 4CB6F39B22B6A4B500A00839 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		4C0DE422202B561400599E41 /* Debug */ = {
@@ -253,6 +329,24 @@
 			};
 			name = Release;
 		};
+		4CB6F39D22B6A4B500A00839 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = tests.h;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		4CB6F39E22B6A4B500A00839 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = tests.h;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -270,6 +364,15 @@
 			buildConfigurations = (
 				4C0DE42B202B56AD00599E41 /* Debug */,
 				4C0DE42C202B56AD00599E41 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4CB6F39F22B6A4B500A00839 /* Build configuration list for PBXNativeTarget "Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4CB6F39D22B6A4B500A00839 /* Debug */,
+				4CB6F39E22B6A4B500A00839 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
