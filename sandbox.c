@@ -41,10 +41,10 @@
 		assert(original_##symbol); \
 	}
 
-enum access_type { READ, WRITE };
-enum enforce_result { PASS, ABORT };
+enum sandbox_access { READ, WRITE };
+enum sandbox_result { PASS, ABORT };
 
-static const char *const access_string[] = { "read", "write" };
+static const char *const sandbox_access_string[] = { "read", "write" };
 
 static const char *sandbox_prefix;
 static size_t sandbox_prefix_length;
@@ -69,7 +69,7 @@ static void __attribute__((constructor)) initialize(void)
 	sandbox_writable = !!getenv("SANDBOX_WRITABLE");
 }
 
-static enum enforce_result enforce_sandbox_f(const char *path, enum access_type access)
+static enum sandbox_result sandbox_test(const char *path, enum sandbox_access access)
 {
 	char buffer[PATH_MAX];
 	char *resolved = realpath(path, buffer);
@@ -80,12 +80,12 @@ static enum enforce_result enforce_sandbox_f(const char *path, enum access_type 
 	return ABORT;
 }
 
-/* wrap enforce_sandbox_f with a macro to print debug output for sandbox violations */
+/* wrap sandbox_test with a macro to print debug output for sandbox violations */
 #define enforce_sandbox(path, access) \
 	do { \
-		if (enforce_sandbox_f(path, access) == ABORT) { \
+		if (sandbox_test(path, access) == ABORT) { \
 			fprintf(stderr, "sandbox violation in %s: %s at %s\n", \
-				__FUNCTION__, access_string[access], path); \
+				__FUNCTION__, sandbox_access_string[access], path); \
 			abort(); \
 		} \
 	} while (0)
