@@ -74,9 +74,11 @@ static void __attribute__((constructor)) initialize(void)
 
 static enum sandbox_result sandbox_test(const char *path, enum sandbox_access access)
 {
-	char buffer[PATH_MAX];
+	char buffer[PATH_MAX + 1];
 	char *resolved = realpath(path, buffer);
 	if (!resolved) return ABORT;
+	// sandbox_prefix and sandbox_exception may compare with trailing slash
+	resolved = strcat(resolved, "/");
 	if (sandbox_exception && strncmp(resolved, sandbox_exception, sandbox_exception_length) == 0) return PASS;
 	if (access == WRITE && !sandbox_writable) return ABORT;
 	if (strncmp(resolved, sandbox_prefix, sandbox_prefix_length) == 0) return PASS;
