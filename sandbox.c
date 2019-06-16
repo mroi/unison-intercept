@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <libgen.h>
 #include <limits.h>
 #include <assert.h>
 #include <dlfcn.h>
@@ -44,10 +45,10 @@
 		assert(original_##symbol); \
 	}
 
-enum sandbox_access { READ, WRITE };
+enum sandbox_access { READ, WRITE, CREATE };
 enum sandbox_result { PASS, ABORT };
 
-static const char *const sandbox_access_string[] = { "read", "write" };
+static const char *const sandbox_access_string[] = { "read", "write", "create" };
 
 static const char *sandbox_prefix;
 static size_t sandbox_prefix_length;
@@ -76,12 +77,21 @@ static enum sandbox_result sandbox_test(const char *path, enum sandbox_access ac
 {
 	char buffer[PATH_MAX + 1];
 	char *resolved = realpath(path, buffer);
+	if (!resolved && errno == ENOENT && access == CREATE) {
+		// creating a non-existent file is OK, if the parent directory is writable
+		char *mutable_path = strdup(path);
+		resolved = realpath(dirname(mutable_path), buffer);
+		free(mutable_path);
+	}
 	if (!resolved) return ABORT;
 	// sandbox_prefix and sandbox_exception may compare with trailing slash
 	resolved = strcat(resolved, "/");
+
 	if (sandbox_exception && strncmp(resolved, sandbox_exception, sandbox_exception_length) == 0) return PASS;
 	if (access == WRITE && !sandbox_writable) return ABORT;
+	if (access == CREATE && !sandbox_writable) return ABORT;
 	if (strncmp(resolved, sandbox_prefix, sandbox_prefix_length) == 0) return PASS;
+
 	return ABORT;
 }
 
@@ -142,7 +152,7 @@ int link(const char *target, const char *path)
 {
 	ORIGINAL_SYMBOL(link, (const char *target, const char *path))
 	enforce_sandbox(target, WRITE);  // otherwise privileges can be escalated via new path
-	enforce_sandbox(path, WRITE);
+	enforce_sandbox(path, CREATE);
 	return original_link(target, path);
 }
 
@@ -156,14 +166,14 @@ int lstat(const char *restrict path, struct stat *restrict stat)
 int mkdir(const char *path, mode_t mode)
 {
 	ORIGINAL_SYMBOL(mkdir, (const char *path, mode_t mode))
-	enforce_sandbox(path, WRITE);
+	enforce_sandbox(path, CREATE);
 	return original_mkdir(path, mode);
 }
 
 int mkfifo(const char *path, mode_t mode)
 {
 	ORIGINAL_SYMBOL(mkfifo, (const char *path, mode_t mode))
-	enforce_sandbox(path, WRITE);
+	enforce_sandbox(path, CREATE);
 	return original_mkfifo(path, mode);
 }
 
@@ -172,7 +182,9 @@ int open(const char *path, int flags, ...)
 	ORIGINAL_SYMBOL(open, (const char *path, int flags, ...))
 	int result;
 
-	if (flags & O_WRONLY || flags & O_RDWR || flags & O_CREAT)
+	if (flags & flags & O_CREAT)
+		enforce_sandbox(path, CREATE);
+	else if (flags & O_WRONLY || flags & O_RDWR)
 		enforce_sandbox(path, WRITE);
 	else
 		enforce_sandbox(path, READ);
@@ -208,7 +220,7 @@ int rename(const char *old, const char *new)
 {
 	ORIGINAL_SYMBOL(rename, (const char *old, const char *new))
 	enforce_sandbox(old, WRITE);
-	enforce_sandbox(new, WRITE);
+	enforce_sandbox(new, CREATE);
 	return original_rename(old, new);
 }
 
@@ -229,7 +241,7 @@ int stat(const char *restrict path, struct stat *restrict stat)
 int symlink(const char *target, const char *path)
 {
 	ORIGINAL_SYMBOL(symlink, (const char *target, const char *path))
-	enforce_sandbox(path, WRITE);
+	enforce_sandbox(path, CREATE);
 	return original_symlink(target, path);
 }
 
