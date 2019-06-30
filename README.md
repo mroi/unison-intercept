@@ -38,10 +38,11 @@ As Unison reads its configuration files, this intercept layer parses them and ex
 additional configuration options used by other intercepts. All additional options start with 
 `#` and therefore look like comments to the normal Unison parser.
 
-**post**  
-Runs post processing commands whenever a specified file is changed. This step is configured 
-using lines of the form `#post = Path PATH -> COMMAND`. Global post commands, which execute 
-once synchronization is fully completed, are configured as `#postcmd = COMMAND`.
+**prepost**  
+Runs pre and post processing commands. Global pre and post commands, which execute once 
+synchronisation starts and completes, are configured as `#precmd = COMMAND` and
+`#postcmd = COMMAND`. Lines of the form `#post = Path PATH -> COMMAND` cause a command to be 
+executed whenever a specific file has been changed.
 
 Sandboxing
 ----------

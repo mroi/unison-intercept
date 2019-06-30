@@ -24,7 +24,7 @@ static void prepostcmd_remember_archive(const char *path);
 static void prepostcmd_check_finalize(const char *path);
 static void post_recurse(const char *path);
 static void post_check(const char *path);
-static void post_run(const char *command, const char *path);
+static void prepost_run(const char *command, const char *path);
 
 
 /* MARK: - Intercepted Functions */
@@ -91,19 +91,24 @@ int prepost_rmdir(const char *path)
 
 static void prepostcmd_remember_archive(const char *path)
 {
-	if (!current_archive && fnmatch(ARCHIVE_PATTERN, path, 0) == 0)
+	if (!current_archive && fnmatch(ARCHIVE_PATTERN, path, 0) == 0) {
+		// first archive file touched, run pre command
 		current_archive = strdup(path);
+		pthread_mutex_lock(&config.lock);
+		if (config.pre_command)
+			prepost_run(config.pre_command, NULL);
+		pthread_mutex_unlock(&config.lock);
+	}
 }
 
 static void prepostcmd_check_finalize(const char *path)
 {
 	if (current_archive && strcmp(path, current_archive) == 0) {
 		// final update to archive file, run post command
-		if (config.post_command) {
-			pthread_mutex_lock(&config.lock);
-			post_run(config.post_command, NULL);
-			pthread_mutex_unlock(&config.lock);
-		}
+		pthread_mutex_lock(&config.lock);
+		if (config.post_command)
+			prepost_run(config.post_command, NULL);
+		pthread_mutex_unlock(&config.lock);
 		prepost_reset();
 	}
 }
@@ -147,14 +152,14 @@ static void post_check(const char *path)
 				scratchpad_alloc(&config.scratchpad, size);
 				sprintf(config.scratchpad.buffer, "%s/%s", config.root[i].string, post->pattern.string);
 				if (fnmatch(config.scratchpad.buffer, path, FNM_PATHNAME) == 0)
-					post_run(post->command, path);
+					prepost_run(post->command, path);
 			}
 		}
 	}
 	pthread_mutex_unlock(&config.lock);
 }
 
-static void post_run(const char *const_command, const char *path)
+static void prepost_run(const char *const_command, const char *path)
 {
 	char *command = strdup(const_command);
 	size_t length = strlen(const_command);

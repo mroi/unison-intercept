@@ -17,7 +17,7 @@
 #define UNISON_DIR2 "Library/Application Support/Unison"
 
 enum entry_type {
-	ENTRY_ROOT, ENTRY_POST_PATH, ENTRY_POST_CMD
+	ENTRY_ROOT, ENTRY_PRE_CMD, ENTRY_POST_CMD, ENTRY_POST_PATH
 };
 
 
@@ -38,8 +38,9 @@ static struct parse_s {
 	 *  . - matches anything, stores in argument buffer
 	 *    - space also matches tab */
 	{ .type = ENTRY_ROOT, .pattern = "^root *= *.*" },
+	{ .type = ENTRY_PRE_CMD, .pattern = "^#precmd *= *.*" },
+	{ .type = ENTRY_POST_CMD, .pattern = "^#postcmd *= *.*" },
 	{ .type = ENTRY_POST_PATH, .pattern = "^#post *= *Path *.*" },
-	{ .type = ENTRY_POST_CMD, .pattern = "^#postcmd *= *.*" }
 };
 #pragma clang diagnostic pop
 static struct buffer_s argument = { .buffer = NULL, .size = 0 };
@@ -48,6 +49,7 @@ struct config_s config = {
 	.lock = PTHREAD_MUTEX_INITIALIZER,
 	.search_path = NULL,
 	.root = { { .string = NULL, .length = 0 }, { .string = NULL, .length = 0 } },
+	.pre_command = NULL,
 	.post_command = NULL,
 	.post = NULL,
 	.scratchpad = { .buffer = NULL, .size = 0 }
@@ -263,6 +265,22 @@ static void process_entry(enum entry_type type)
 			pthread_mutex_unlock(&config.lock);
 			break;
 
+		case ENTRY_PRE_CMD:
+			if (argument.buffer[0] == '\0') break;
+			pthread_mutex_lock(&config.lock);
+			if (config.pre_command) free(config.pre_command);
+			config.pre_command = strdup(argument.buffer);
+			pthread_mutex_unlock(&config.lock);
+			break;
+
+		case ENTRY_POST_CMD:
+			if (argument.buffer[0] == '\0') break;
+			pthread_mutex_lock(&config.lock);
+			if (config.post_command) free(config.post_command);
+			config.post_command = strdup(argument.buffer);
+			pthread_mutex_unlock(&config.lock);
+			break;
+
 		case ENTRY_POST_PATH:
 			if (!attribute) break;
 			struct post_s *new_post = malloc(sizeof(struct post_s));
@@ -276,14 +294,6 @@ static void process_entry(enum entry_type type)
 			struct post_s **last_post;
 			for (last_post = &config.post; *last_post; last_post = &(*last_post)->next) {}
 			*last_post = new_post;
-			pthread_mutex_unlock(&config.lock);
-			break;
-
-		case ENTRY_POST_CMD:
-			if (argument.buffer[0] == '\0') break;
-			pthread_mutex_lock(&config.lock);
-			if (config.post_command) free(config.post_command);
-			config.post_command = strdup(argument.buffer);
 			pthread_mutex_unlock(&config.lock);
 			break;
 	}
@@ -301,6 +311,8 @@ void config_reset(void)
 		config.root[i].length = 0;
 	}
 
+	free(config.pre_command);
+	config.pre_command = NULL;
 	free(config.post_command);
 	config.post_command = NULL;
 

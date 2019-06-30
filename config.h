@@ -14,6 +14,7 @@ extern struct config_s {
 	pthread_mutex_t lock;
 	char *search_path;
 	struct string_s root[2];
+	char *pre_command;
 	char *post_command;
 	struct post_s {
 		struct string_s pattern;
