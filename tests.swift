@@ -95,4 +95,32 @@ extension Tests {
 		XCTAssert(String(cString: config.post.pointee.next.pointee.pattern.string) == "A/eiVQBcyU")
 		XCTAssert(String(cString: config.post.pointee.next.pointee.command) == "7RqAcYFY0d")
 	}
+
+	func testPrePost() {
+		loadProfile("""
+			#precmd  = run 1
+			#post    = Path trigger -> run 2
+			#postcmd = run 3
+			""")
+		let command = "#!/bin/sh\nprintf $1 >> $UNISON/trace\n"
+		let configDir = Tests.root.appendingPathComponent(".unison")
+		let commandFile = configDir.appendingPathComponent("run")
+		let archiveFile = configDir.appendingPathComponent("ar00000000000000000000000000000000")
+		let traceFile = configDir.appendingPathComponent("trace")
+		let triggerFile = Tests.root.appendingPathComponent("trigger")
+
+		// put command script in unison folder
+		try! command.write(to: commandFile, atomically: false, encoding: .utf8)
+		try! files.setAttributes([.posixPermissions: S_IRWXU], ofItemAtPath: commandFile.path)
+		// create archive file to trigger pre command
+		touch(archiveFile)
+		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "1")
+		// trigger per-file post command
+		touch(triggerFile)
+		unlink(triggerFile)
+		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "12")
+		// unlink archive file to trigger global post command
+		unlink(archiveFile)
+		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "123")
+	}
 }
