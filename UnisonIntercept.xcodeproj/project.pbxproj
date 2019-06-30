@@ -145,7 +145,7 @@
 				4C0DE424202B56AD00599E41 /* Sources */,
 				4C0DE425202B56AD00599E41 /* Frameworks */,
 				4C0DE426202B56AD00599E41 /* Headers */,
-				4C08F4E1202CB3B4001F710D /* ShellScript */,
+				4C08F4E1202CB3B4001F710D /* Modify Unison Linkage */,
 			);
 			buildRules = (
 			);
@@ -221,13 +221,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		4C08F4E1202CB3B4001F710D /* ShellScript */ = {
+		4C08F4E1202CB3B4001F710D /* Modify Unison Linkage */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 8;
 			files = (
 			);
 			inputPaths = (
 			);
+			name = "Modify Unison Linkage";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
