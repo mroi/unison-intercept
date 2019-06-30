@@ -20,8 +20,8 @@
 
 static char *current_archive = NULL;
 
-static void prepostcmd_remember_archive(const char *path);
-static void prepostcmd_check_finalize(const char *path);
+static void prepostcmd_initialize(const char *path);
+static void prepostcmd_finalize(const char *path);
 static void post_recurse(const char *path);
 static void post_check(const char *path);
 static void prepost_run(const char *command, const char *path);
@@ -31,7 +31,7 @@ static void prepost_run(const char *command, const char *path);
 
 int prepost_open(const char *path, int flags, ...)
 {
-	prepostcmd_remember_archive(path);
+	prepostcmd_initialize(path);
 
 	int result;
 	va_list arg;
@@ -50,19 +50,19 @@ int prepost_open(const char *path, int flags, ...)
 
 int prepost_stat(const char * restrict path, struct stat * restrict buf)
 {
-	prepostcmd_remember_archive(path);
+	prepostcmd_initialize(path);
 	return stat(path, buf);
 }
 
 int prepost_lstat(const char * restrict path, struct stat * restrict buf)
 {
-	prepostcmd_remember_archive(path);
+	prepostcmd_initialize(path);
 	return lstat(path, buf);
 }
 
 int prepost_rename(const char *old, const char *new)
 {
-	prepostcmd_check_finalize(new);
+	prepostcmd_finalize(new);
 	int result = rename(old, new);
 	if (result == 0)
 		post_recurse(new);
@@ -71,7 +71,7 @@ int prepost_rename(const char *old, const char *new)
 
 int prepost_unlink(const char *path)
 {
-	prepostcmd_check_finalize(path);
+	prepostcmd_finalize(path);
 	int result = unlink(path);
 	if (result == 0)
 		post_check(path);
@@ -89,7 +89,7 @@ int prepost_rmdir(const char *path)
 
 /* MARK: - Helper Functions */
 
-static void prepostcmd_remember_archive(const char *path)
+static void prepostcmd_initialize(const char *path)
 {
 	if (!current_archive && fnmatch(ARCHIVE_PATTERN, path, 0) == 0) {
 		// first archive file touched, run pre command
@@ -101,7 +101,7 @@ static void prepostcmd_remember_archive(const char *path)
 	}
 }
 
-static void prepostcmd_check_finalize(const char *path)
+static void prepostcmd_finalize(const char *path)
 {
 	if (current_archive && strcmp(path, current_archive) == 0) {
 		// final update to archive file, run post command

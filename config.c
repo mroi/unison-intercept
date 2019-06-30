@@ -21,7 +21,7 @@ enum entry_type {
 };
 
 
-static bool config_mode = true;
+static bool config_expected = true;
 static char *config_pattern;
 static int current_config_fd = -1;
 
@@ -122,12 +122,12 @@ int config_open(const char *path, int flags, ...)
 	} else {
 		result = open(path, flags);
 
-		if (result >= 0 && (flags & O_ACCMODE) == O_RDONLY && config_mode &&
+		if (result >= 0 && (flags & O_ACCMODE) == O_RDONLY && config_expected &&
 			fnmatch(config_pattern, path, FNM_PATHNAME) == 0) {
 
 			if (strlen(strrchr(path, '/') + 1) == 2 + 32) {
-				// unison internal file, sync has started
-				config_mode = false;
+				// unison internal file, sync has started, inhibit parsing of upcoming files
+				config_expected = false;
 			} else {
 				assert(current_config_fd == -1);  // config files must be read sequentially
 				current_config_fd = result;
@@ -325,7 +325,7 @@ void config_reset(void)
 	}
 	config.post = NULL;
 
-	config_mode = true;
+	config_expected = true;
 
 	pthread_mutex_unlock(&config.lock);
 }
