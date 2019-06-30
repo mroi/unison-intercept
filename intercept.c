@@ -20,7 +20,7 @@
 
 #include "nocache.h"
 #include "config.h"
-#include "post.h"
+#include "prepost.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -51,7 +51,7 @@ enum intercept_id {
 	NONE,
 	NOCACHE,   // disable caching of file writes
 	CONFIG,    // process our own entries in Unison config files
-	POST,      // execute post scripts when files change
+	PREPOST,      // execute post scripts when files change
 	ORIGINAL
 };
 
@@ -93,7 +93,7 @@ static void *profile_intercept(id self, SEL command, void *arg1)
 {
 	// the user changed to a different Unison profile, call reset functions
 	config_reset();
-	post_reset();
+	prepost_reset();
 	previous_implementation(self, command, arg1);
 }
 
@@ -126,13 +126,13 @@ int open(const char *path, int flags, ...)
 				result = config_open(path, flags);
 			break;
 		case CONFIG:
-			context = POST;
+			context = PREPOST;
 			if (flags & O_CREAT)
-				result = post_open(path, flags, va_arg(arg, unsigned));
+				result = prepost_open(path, flags, va_arg(arg, unsigned));
 			else
-				result = post_open(path, flags);
+				result = prepost_open(path, flags);
 			break;
-		case POST:
+		case PREPOST:
 			context = ORIGINAL;
 		case ORIGINAL:
 			if (flags & O_CREAT)
@@ -160,7 +160,7 @@ int close(int fd)
 			result = config_close(fd);
 			break;
 		case CONFIG:
-		case POST:
+		case PREPOST:
 			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_close(fd);
@@ -184,7 +184,7 @@ ssize_t read(int fd, void *buf, size_t bytes)
 			result = config_read(fd, buf, bytes);
 			break;
 		case CONFIG:
-		case POST:
+		case PREPOST:
 			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_read(fd, buf, bytes);
@@ -205,10 +205,10 @@ int stat(const char * restrict path, struct stat * restrict buf)
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
-			context = POST;
-			result = post_stat(path, buf);
+			context = PREPOST;
+			result = prepost_stat(path, buf);
 			break;
-		case POST:
+		case PREPOST:
 			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_stat(path, buf);
@@ -229,10 +229,10 @@ int lstat(const char * restrict path, struct stat * restrict buf)
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
-			context = POST;
-			result = post_lstat(path, buf);
+			context = PREPOST;
+			result = prepost_lstat(path, buf);
 			break;
-		case POST:
+		case PREPOST:
 			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_lstat(path, buf);
@@ -253,10 +253,10 @@ int rename(const char *old, const char *new)
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
-			context = POST;
-			result = post_rename(old, new);
+			context = PREPOST;
+			result = prepost_rename(old, new);
 			break;
-		case POST:
+		case PREPOST:
 			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_rename(old, new);
@@ -277,10 +277,10 @@ int unlink(const char *path)
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
-			context = POST;
-			result = post_unlink(path);
+			context = PREPOST;
+			result = prepost_unlink(path);
 			break;
-		case POST:
+		case PREPOST:
 			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_unlink(path);
@@ -301,10 +301,10 @@ int rmdir(const char *path)
 		case NONE:
 		case NOCACHE:
 		case CONFIG:
-			context = POST;
-			result = post_rmdir(path);
+			context = PREPOST;
+			result = prepost_rmdir(path);
 			break;
-		case POST:
+		case PREPOST:
 			context = ORIGINAL;
 		case ORIGINAL:
 			result = original_rmdir(path);

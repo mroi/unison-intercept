@@ -13,15 +13,15 @@
 #include <assert.h>
 
 #include "config.h"
-#include "post.h"
+#include "prepost.h"
 
 #define ARCHIVE_PATTERN "*/ar[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]"
 
 
 static char *current_archive = NULL;
 
-static void postcmd_remember_archive(const char *path);
-static void postcmd_check_finalize(const char *path);
+static void prepostcmd_remember_archive(const char *path);
+static void prepostcmd_check_finalize(const char *path);
 static void post_recurse(const char *path);
 static void post_check(const char *path);
 static void post_run(const char *command, const char *path);
@@ -29,9 +29,9 @@ static void post_run(const char *command, const char *path);
 
 /* MARK: - Intercepted Functions */
 
-int post_open(const char *path, int flags, ...)
+int prepost_open(const char *path, int flags, ...)
 {
-	postcmd_remember_archive(path);
+	prepostcmd_remember_archive(path);
 
 	int result;
 	va_list arg;
@@ -48,37 +48,37 @@ int post_open(const char *path, int flags, ...)
 	return result;
 }
 
-int post_stat(const char * restrict path, struct stat * restrict buf)
+int prepost_stat(const char * restrict path, struct stat * restrict buf)
 {
-	postcmd_remember_archive(path);
+	prepostcmd_remember_archive(path);
 	return stat(path, buf);
 }
 
-int post_lstat(const char * restrict path, struct stat * restrict buf)
+int prepost_lstat(const char * restrict path, struct stat * restrict buf)
 {
-	postcmd_remember_archive(path);
+	prepostcmd_remember_archive(path);
 	return lstat(path, buf);
 }
 
-int post_rename(const char *old, const char *new)
+int prepost_rename(const char *old, const char *new)
 {
-	postcmd_check_finalize(new);
+	prepostcmd_check_finalize(new);
 	int result = rename(old, new);
 	if (result == 0)
 		post_recurse(new);
 	return result;
 }
 
-int post_unlink(const char *path)
+int prepost_unlink(const char *path)
 {
-	postcmd_check_finalize(path);
+	prepostcmd_check_finalize(path);
 	int result = unlink(path);
 	if (result == 0)
 		post_check(path);
 	return result;
 }
 
-int post_rmdir(const char *path)
+int prepost_rmdir(const char *path)
 {
 	int result = rmdir(path);
 	if (result == 0)
@@ -89,20 +89,22 @@ int post_rmdir(const char *path)
 
 /* MARK: - Helper Functions */
 
-static void postcmd_remember_archive(const char *path)
+static void prepostcmd_remember_archive(const char *path)
 {
-	if (config.post_command && !current_archive && fnmatch(ARCHIVE_PATTERN, path, 0) == 0)
+	if (!current_archive && fnmatch(ARCHIVE_PATTERN, path, 0) == 0)
 		current_archive = strdup(path);
 }
 
-static void postcmd_check_finalize(const char *path)
+static void prepostcmd_check_finalize(const char *path)
 {
-	if (config.post_command && current_archive && strcmp(path, current_archive) == 0) {
+	if (current_archive && strcmp(path, current_archive) == 0) {
 		// final update to archive file, run post command
-		pthread_mutex_lock(&config.lock);
-		post_run(config.post_command, NULL);
-		pthread_mutex_unlock(&config.lock);
-		post_reset();
+		if (config.post_command) {
+			pthread_mutex_lock(&config.lock);
+			post_run(config.post_command, NULL);
+			pthread_mutex_unlock(&config.lock);
+		}
+		prepost_reset();
 	}
 }
 
@@ -195,7 +197,7 @@ static void post_run(const char *const_command, const char *path)
 	free(command);
 }
 
-void post_reset(void)
+void prepost_reset(void)
 {
 	free(current_archive);
 	current_archive = NULL;

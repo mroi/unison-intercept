@@ -8,9 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		4C0DE42E202B5AC900599E41 /* intercept.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0DE42D202B5AC900599E41 /* intercept.c */; };
-		4C0DE436202B5B9000599E41 /* post.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0DE430202B5B9000599E41 /* post.c */; };
+		4C0DE436202B5B9000599E41 /* prepost.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0DE430202B5B9000599E41 /* prepost.c */; };
 		4C0DE437202B5B9000599E41 /* config.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0DE431202B5B9000599E41 /* config.c */; };
-		4C0DE438202B5B9000599E41 /* post.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C0DE432202B5B9000599E41 /* post.h */; };
+		4C0DE438202B5B9000599E41 /* prepost.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C0DE432202B5B9000599E41 /* prepost.h */; };
 		4C0DE439202B5B9000599E41 /* nocache.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0DE433202B5B9000599E41 /* nocache.c */; };
 		4C0DE43A202B5B9000599E41 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C0DE434202B5B9000599E41 /* config.h */; };
 		4C0DE43B202B5B9000599E41 /* nocache.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C0DE435202B5B9000599E41 /* nocache.h */; };
@@ -34,9 +34,9 @@
 /* Begin PBXFileReference section */
 		4C0DE428202B56AD00599E41 /* libintercept.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libintercept.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C0DE42D202B5AC900599E41 /* intercept.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = intercept.c; sourceTree = "<group>"; };
-		4C0DE430202B5B9000599E41 /* post.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = post.c; sourceTree = "<group>"; };
+		4C0DE430202B5B9000599E41 /* prepost.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = prepost.c; sourceTree = "<group>"; };
 		4C0DE431202B5B9000599E41 /* config.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = config.c; sourceTree = "<group>"; };
-		4C0DE432202B5B9000599E41 /* post.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = post.h; sourceTree = "<group>"; };
+		4C0DE432202B5B9000599E41 /* prepost.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = prepost.h; sourceTree = "<group>"; };
 		4C0DE433202B5B9000599E41 /* nocache.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nocache.c; sourceTree = "<group>"; };
 		4C0DE434202B5B9000599E41 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		4C0DE435202B5B9000599E41 /* nocache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nocache.h; sourceTree = "<group>"; };
@@ -106,8 +106,8 @@
 				4C0DE433202B5B9000599E41 /* nocache.c */,
 				4C0DE434202B5B9000599E41 /* config.h */,
 				4C0DE431202B5B9000599E41 /* config.c */,
-				4C0DE432202B5B9000599E41 /* post.h */,
-				4C0DE430202B5B9000599E41 /* post.c */,
+				4C0DE432202B5B9000599E41 /* prepost.h */,
+				4C0DE430202B5B9000599E41 /* prepost.c */,
 			);
 			name = Intercepts;
 			sourceTree = "<group>";
@@ -131,7 +131,7 @@
 			files = (
 				4C0DE43B202B5B9000599E41 /* nocache.h in Headers */,
 				4C0DE43A202B5B9000599E41 /* config.h in Headers */,
-				4C0DE438202B5B9000599E41 /* post.h in Headers */,
+				4C0DE438202B5B9000599E41 /* prepost.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,7 +246,7 @@
 				4C0DE42E202B5AC900599E41 /* intercept.c in Sources */,
 				4C0DE439202B5B9000599E41 /* nocache.c in Sources */,
 				4C0DE437202B5B9000599E41 /* config.c in Sources */,
-				4C0DE436202B5B9000599E41 /* post.c in Sources */,
+				4C0DE436202B5B9000599E41 /* prepost.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
