@@ -2,7 +2,7 @@ import XCTest
 
 // satisfy the method swizzling in the intercept constructor
 @objc(MyController) class UnisonSurrogate: NSObject {
-	@objc(connect:) func reset(_ profile: NSString = "") {}
+	@objc(connect:) dynamic func reset(_ profile: NSString = "") {}
 }
 
 let files = FileManager.default
@@ -21,7 +21,7 @@ class Tests: XCTestCase {
 		try! files.createDirectory(at: root, withIntermediateDirectories: true)
 	}
 
-	func loadProfile(_ profile: String) {
+	private func loadProfile(_ profile: String) {
 		// write profile to disk
 		let configDir = Tests.root.appendingPathComponent(".unison")
 		try! files.createDirectory(at: configDir, withIntermediateDirectories: true)
@@ -38,6 +38,28 @@ class Tests: XCTestCase {
 			repeat {
 				bytesRead = read(fd, buffer.baseAddress, chunkSize)
 			} while bytesRead > 0
+		}
+
+		// pass root directory to config
+		if config.root.0.string == .none {
+			Tests.root.withUnsafeFileSystemRepresentation {
+				let length = strlen($0!)
+				let root = UnsafeMutablePointer<CChar>.allocate(capacity: length + 1)
+				root.assign(from: $0!, count: length + 1)
+				config.root.0 = string_s(string: root, length: length)
+			}
+		}
+	}
+
+	private func touch(_ file: URL) {
+		_ = file.withUnsafeFileSystemRepresentation {
+			close(interceptOpen($0!, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR))
+		}
+	}
+
+	private func unlink(_ file: URL) {
+		_ = file.withUnsafeFileSystemRepresentation {
+			Darwin.unlink($0!)
 		}
 	}
 
