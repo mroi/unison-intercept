@@ -51,3 +51,26 @@ class Tests: XCTestCase {
 		try! files.removeItem(at: root)
 	}
 }
+
+
+// MARK: - Test Functions
+
+extension Tests {
+
+	func testConfig() {
+		loadProfile("""
+			root     = /fcChXfYky
+			root     = /ZIopXJKWq
+			#postcmd = JgEPTRILIb
+			#post    = Path FUHP/kwuwu -> 3RXO7ZAC5w
+			#post    = Path A/eiVQBcyU -> 7RqAcYFY0d
+			""")
+		XCTAssert(String(cString: config.root.0.string) == "/fcChXfYky")
+		XCTAssert(String(cString: config.root.1.string) == "/ZIopXJKWq")
+		XCTAssert(String(cString: config.post_command) == "JgEPTRILIb")
+		XCTAssert(String(cString: config.post.pointee.pattern.string) == "FUHP/kwuwu")
+		XCTAssert(String(cString: config.post.pointee.command) == "3RXO7ZAC5w")
+		XCTAssert(String(cString: config.post.pointee.next.pointee.pattern.string) == "A/eiVQBcyU")
+		XCTAssert(String(cString: config.post.pointee.next.pointee.command) == "7RqAcYFY0d")
+	}
+}
