@@ -155,10 +155,16 @@ int config_close(int fd)
 ssize_t config_read(int fd, void *buf, size_t bytes)
 {
 	ssize_t result = read(fd, buf, bytes);
+
 	if (result > 0 && fd == current_config_fd)
 		for (ssize_t pos = 0; pos < result; pos++)
 			for (size_t i = 0; i < sizeof(parse) / sizeof(parse[0]); i++)
 				config_parse(&parse[i], ((char *)buf)[pos]);
+	if (result == 0 && bytes > 0 && fd == current_config_fd)
+		// finalize parsing when last line has no trailing newline
+		for (size_t i = 0; i < sizeof(parse) / sizeof(parse[0]); i++)
+			config_parse(&parse[i], '\n');
+
 	return result;
 }
 
@@ -264,9 +270,12 @@ static void process_entry(enum entry_type type)
 			new_post->pattern.string = strdup(argument.buffer);
 			new_post->pattern.length = strlen(argument.buffer);
 			new_post->command = strdup(attribute);
+			new_post->next = NULL;
 			pthread_mutex_lock(&config.lock);
-			new_post->next = config.post;
-			config.post = new_post;
+			// append at the end causes O(n²) complexity, but ensures processing in config file order
+			struct post_s **last_post;
+			for (last_post = &config.post; *last_post; last_post = &(*last_post)->next) {}
+			*last_post = new_post;
 			pthread_mutex_unlock(&config.lock);
 			break;
 
