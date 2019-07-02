@@ -83,12 +83,14 @@ extension Tests {
 		loadProfile("""
 			root     = /fcChXfYky
 			root     = /ZIopXJKWq
+			#precmd  = tIGEmizPts
 			#postcmd = JgEPTRILIb
 			#post    = Path FUHP/kwuwu -> 3RXO7ZAC5w
 			#post    = Path A/eiVQBcyU -> 7RqAcYFY0d
 			""")
 		XCTAssert(String(cString: config.root.0.string) == "/fcChXfYky")
 		XCTAssert(String(cString: config.root.1.string) == "/ZIopXJKWq")
+		XCTAssert(String(cString: config.pre_command) == "tIGEmizPts")
 		XCTAssert(String(cString: config.post_command) == "JgEPTRILIb")
 		XCTAssert(String(cString: config.post.pointee.pattern.string) == "FUHP/kwuwu")
 		XCTAssert(String(cString: config.post.pointee.command) == "3RXO7ZAC5w")
@@ -100,7 +102,8 @@ extension Tests {
 		loadProfile("""
 			#precmd  = run 1
 			#post    = Path trigger -> run 2
-			#postcmd = run 3
+			#post    = Path trigger -> run 3
+			#postcmd = run 4
 			""")
 		let command = "#!/bin/sh\nprintf $1 >> $UNISON/trace\n"
 		let configDir = Tests.root.appendingPathComponent(".unison")
@@ -118,9 +121,9 @@ extension Tests {
 		// trigger per-file post command
 		touch(triggerFile)
 		unlink(triggerFile)
-		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "12")
+		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "123")
 		// unlink archive file to trigger global post command
 		unlink(archiveFile)
-		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "123")
+		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "1234")
 	}
 }
