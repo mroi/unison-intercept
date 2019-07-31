@@ -176,57 +176,57 @@ ssize_t config_read(int fd, void *buf, size_t bytes)
 static void config_parse(struct parse_s * restrict parser, char character)
 {
 	switch (parser->pattern[parser->seen]) {
-		case '^':
-			if (character == '\n') {
-				parser->seen++;
-			} else if (parser->seen) {
-				parser->seen = 0;
-				config_parse(parser, character);
-			}
-			break;
-		case ' ':
-			if (character == ' ' || character == '\t') {
-				parser->seen++;
-			} else if (parser->seen) {
-				parser->seen = 0;
-				config_parse(parser, character);
-			}
-			break;
-		case '.':
-			if (character != '\n') {
-				size_t length = strlen(argument.buffer);
-				scratchpad_alloc(&argument, length + 1);
-				argument.buffer[length + 0] = character;
-				argument.buffer[length + 1] = '\0';
-				parser->seen++;
-			} else if (parser->seen) {
-				parser->seen = 0;
-				config_parse(parser, character);
-			}
-			break;
-		case '*': {
-			size_t saved_state = parser->seen;
-			parser->seen--;
-			config_parse(parser, character);
-			if (parser->seen != saved_state) {
-				parser->seen = saved_state + 1;
-				config_parse(parser, character);
-			}
-			break;
-		}
-		case '\0':
-			process_entry(parser->type);
+	case '^':
+		if (character == '\n') {
+			parser->seen++;
+		} else if (parser->seen) {
 			parser->seen = 0;
 			config_parse(parser, character);
-			break;
-		default:
-			if (character == parser->pattern[parser->seen]) {
-				parser->seen++;
-			} else if (parser->seen) {
-				parser->seen = 0;
-				config_parse(parser, character);
-			}
-			break;
+		}
+		break;
+	case ' ':
+		if (character == ' ' || character == '\t') {
+			parser->seen++;
+		} else if (parser->seen) {
+			parser->seen = 0;
+			config_parse(parser, character);
+		}
+		break;
+	case '.':
+		if (character != '\n') {
+			size_t length = strlen(argument.buffer);
+			scratchpad_alloc(&argument, length + 1);
+			argument.buffer[length + 0] = character;
+			argument.buffer[length + 1] = '\0';
+			parser->seen++;
+		} else if (parser->seen) {
+			parser->seen = 0;
+			config_parse(parser, character);
+		}
+		break;
+	case '*': {
+		size_t saved_state = parser->seen;
+		parser->seen--;
+		config_parse(parser, character);
+		if (parser->seen != saved_state) {
+			parser->seen = saved_state + 1;
+			config_parse(parser, character);
+		}
+		break;
+	}
+	case '\0':
+		process_entry(parser->type);
+		parser->seen = 0;
+		config_parse(parser, character);
+		break;
+	default:
+		if (character == parser->pattern[parser->seen]) {
+			parser->seen++;
+		} else if (parser->seen) {
+			parser->seen = 0;
+			config_parse(parser, character);
+		}
+		break;
 	}
 }
 
@@ -249,53 +249,53 @@ static void process_entry(enum entry_type type)
 	}
 
 	switch (type) {
-		case ENTRY_ROOT:
-			if (argument.buffer[0] != '/') break;
-			for (char *c = argument.buffer + strlen(argument.buffer) - 1; c > argument.buffer; c--)
-				if (*c == '/') *c = '\0';
-				else break;
-			pthread_mutex_lock(&config.lock);
-			if (!config.root[0].string) {
-				config.root[0].string = strdup(argument.buffer);
-				config.root[0].length = strlen(argument.buffer);
-			} else if (!config.root[1].string) {
-				config.root[1].string = strdup(argument.buffer);
-				config.root[1].length = strlen(argument.buffer);
-			}
-			pthread_mutex_unlock(&config.lock);
-			break;
+	case ENTRY_ROOT:
+		if (argument.buffer[0] != '/') break;
+		for (char *c = argument.buffer + strlen(argument.buffer) - 1; c > argument.buffer; c--)
+			if (*c == '/') *c = '\0';
+			else break;
+		pthread_mutex_lock(&config.lock);
+		if (!config.root[0].string) {
+			config.root[0].string = strdup(argument.buffer);
+			config.root[0].length = strlen(argument.buffer);
+		} else if (!config.root[1].string) {
+			config.root[1].string = strdup(argument.buffer);
+			config.root[1].length = strlen(argument.buffer);
+		}
+		pthread_mutex_unlock(&config.lock);
+		break;
 
-		case ENTRY_PRE_CMD:
-			if (argument.buffer[0] == '\0') break;
-			pthread_mutex_lock(&config.lock);
-			if (config.pre_command) free(config.pre_command);
-			config.pre_command = strdup(argument.buffer);
-			pthread_mutex_unlock(&config.lock);
-			break;
+	case ENTRY_PRE_CMD:
+		if (argument.buffer[0] == '\0') break;
+		pthread_mutex_lock(&config.lock);
+		if (config.pre_command) free(config.pre_command);
+		config.pre_command = strdup(argument.buffer);
+		pthread_mutex_unlock(&config.lock);
+		break;
 
-		case ENTRY_POST_CMD:
-			if (argument.buffer[0] == '\0') break;
-			pthread_mutex_lock(&config.lock);
-			if (config.post_command) free(config.post_command);
-			config.post_command = strdup(argument.buffer);
-			pthread_mutex_unlock(&config.lock);
-			break;
+	case ENTRY_POST_CMD:
+		if (argument.buffer[0] == '\0') break;
+		pthread_mutex_lock(&config.lock);
+		if (config.post_command) free(config.post_command);
+		config.post_command = strdup(argument.buffer);
+		pthread_mutex_unlock(&config.lock);
+		break;
 
-		case ENTRY_POST_PATH:
-			if (!attribute) break;
-			struct post_s *new_post = malloc(sizeof(struct post_s));
-			if (!new_post) break;
-			new_post->pattern.string = strdup(argument.buffer);
-			new_post->pattern.length = strlen(argument.buffer);
-			new_post->command = strdup(attribute);
-			new_post->next = NULL;
-			pthread_mutex_lock(&config.lock);
-			// append at the end causes O(n²) complexity, but ensures processing in config file order
-			struct post_s **last_post;
-			for (last_post = &config.post; *last_post; last_post = &(*last_post)->next) {}
-			*last_post = new_post;
-			pthread_mutex_unlock(&config.lock);
-			break;
+	case ENTRY_POST_PATH:
+		if (!attribute) break;
+		struct post_s *new_post = malloc(sizeof(struct post_s));
+		if (!new_post) break;
+		new_post->pattern.string = strdup(argument.buffer);
+		new_post->pattern.length = strlen(argument.buffer);
+		new_post->command = strdup(attribute);
+		new_post->next = NULL;
+		pthread_mutex_lock(&config.lock);
+		// append at the end causes O(n²) complexity, but ensures processing in config file order
+		struct post_s **last_post;
+		for (last_post = &config.post; *last_post; last_post = &(*last_post)->next) {}
+		*last_post = new_post;
+		pthread_mutex_unlock(&config.lock);
+		break;
 	}
 
 	argument.buffer[0] = '\0';

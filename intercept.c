@@ -111,35 +111,35 @@ int open(const char *path, int flags, ...)
 	va_list arg;
 	va_start(arg, flags);
 	switch (context) {
-		case NONE:
-			context = NOCACHE;
-			if (flags & O_CREAT)
-				result = nocache_open(path, flags, va_arg(arg, unsigned));
-			else
-				result = nocache_open(path, flags);
-			break;
-		case NOCACHE:
-			context = CONFIG;
-			if (flags & O_CREAT)
-				result = config_open(path, flags, va_arg(arg, unsigned));
-			else
-				result = config_open(path, flags);
-			break;
-		case CONFIG:
-			context = PREPOST;
-			if (flags & O_CREAT)
-				result = prepost_open(path, flags, va_arg(arg, unsigned));
-			else
-				result = prepost_open(path, flags);
-			break;
-		case PREPOST:
-			context = ORIGINAL;
-		case ORIGINAL:
-			if (flags & O_CREAT)
-				result = original_open(path, flags, va_arg(arg, unsigned));
-			else
-				result = original_open(path, flags);
-			break;
+	case NONE:
+		context = NOCACHE;
+		if (flags & O_CREAT)
+			result = nocache_open(path, flags, va_arg(arg, unsigned));
+		else
+			result = nocache_open(path, flags);
+		break;
+	case NOCACHE:
+		context = CONFIG;
+		if (flags & O_CREAT)
+			result = config_open(path, flags, va_arg(arg, unsigned));
+		else
+			result = config_open(path, flags);
+		break;
+	case CONFIG:
+		context = PREPOST;
+		if (flags & O_CREAT)
+			result = prepost_open(path, flags, va_arg(arg, unsigned));
+		else
+			result = prepost_open(path, flags);
+		break;
+	case PREPOST:
+		context = ORIGINAL;
+	case ORIGINAL:
+		if (flags & O_CREAT)
+			result = original_open(path, flags, va_arg(arg, unsigned));
+		else
+			result = original_open(path, flags);
+		break;
 	}
 	va_end(arg);
 
@@ -154,17 +154,17 @@ int close(int fd)
 	enum intercept_id saved_context = context;
 
 	switch (context) {
-		case NONE:
-		case NOCACHE:
-			context = CONFIG;
-			result = config_close(fd);
-			break;
-		case CONFIG:
-		case PREPOST:
-			context = ORIGINAL;
-		case ORIGINAL:
-			result = original_close(fd);
-			break;
+	case NONE:
+	case NOCACHE:
+		context = CONFIG;
+		result = config_close(fd);
+		break;
+	case CONFIG:
+	case PREPOST:
+		context = ORIGINAL;
+	case ORIGINAL:
+		result = original_close(fd);
+		break;
 	}
 
 	context = saved_context;
@@ -178,17 +178,17 @@ ssize_t read(int fd, void *buf, size_t bytes)
 	enum intercept_id saved_context = context;
 
 	switch (context) {
-		case NONE:
-		case NOCACHE:
-			context = CONFIG;
-			result = config_read(fd, buf, bytes);
-			break;
-		case CONFIG:
-		case PREPOST:
-			context = ORIGINAL;
-		case ORIGINAL:
-			result = original_read(fd, buf, bytes);
-			break;
+	case NONE:
+	case NOCACHE:
+		context = CONFIG;
+		result = config_read(fd, buf, bytes);
+		break;
+	case CONFIG:
+	case PREPOST:
+		context = ORIGINAL;
+	case ORIGINAL:
+		result = original_read(fd, buf, bytes);
+		break;
 	}
 
 	context = saved_context;
@@ -202,17 +202,17 @@ int stat(const char * restrict path, struct stat * restrict buf)
 	enum intercept_id saved_context = context;
 
 	switch (context) {
-		case NONE:
-		case NOCACHE:
-		case CONFIG:
-			context = PREPOST;
-			result = prepost_stat(path, buf);
-			break;
-		case PREPOST:
-			context = ORIGINAL;
-		case ORIGINAL:
-			result = original_stat(path, buf);
-			break;
+	case NONE:
+	case NOCACHE:
+	case CONFIG:
+		context = PREPOST;
+		result = prepost_stat(path, buf);
+		break;
+	case PREPOST:
+		context = ORIGINAL;
+	case ORIGINAL:
+		result = original_stat(path, buf);
+		break;
 	}
 
 	context = saved_context;
@@ -226,17 +226,17 @@ int lstat(const char * restrict path, struct stat * restrict buf)
 	enum intercept_id saved_context = context;
 
 	switch (context) {
-		case NONE:
-		case NOCACHE:
-		case CONFIG:
-			context = PREPOST;
-			result = prepost_lstat(path, buf);
-			break;
-		case PREPOST:
-			context = ORIGINAL;
-		case ORIGINAL:
-			result = original_lstat(path, buf);
-			break;
+	case NONE:
+	case NOCACHE:
+	case CONFIG:
+		context = PREPOST;
+		result = prepost_lstat(path, buf);
+		break;
+	case PREPOST:
+		context = ORIGINAL;
+	case ORIGINAL:
+		result = original_lstat(path, buf);
+		break;
 	}
 
 	context = saved_context;
@@ -250,17 +250,17 @@ int rename(const char *old, const char *new)
 	enum intercept_id saved_context = context;
 
 	switch (context) {
-		case NONE:
-		case NOCACHE:
-		case CONFIG:
-			context = PREPOST;
-			result = prepost_rename(old, new);
-			break;
-		case PREPOST:
-			context = ORIGINAL;
-		case ORIGINAL:
-			result = original_rename(old, new);
-			break;
+	case NONE:
+	case NOCACHE:
+	case CONFIG:
+		context = PREPOST;
+		result = prepost_rename(old, new);
+		break;
+	case PREPOST:
+		context = ORIGINAL;
+	case ORIGINAL:
+		result = original_rename(old, new);
+		break;
 	}
 
 	context = saved_context;
@@ -274,17 +274,17 @@ int unlink(const char *path)
 	enum intercept_id saved_context = context;
 
 	switch (context) {
-		case NONE:
-		case NOCACHE:
-		case CONFIG:
-			context = PREPOST;
-			result = prepost_unlink(path);
-			break;
-		case PREPOST:
-			context = ORIGINAL;
-		case ORIGINAL:
-			result = original_unlink(path);
-			break;
+	case NONE:
+	case NOCACHE:
+	case CONFIG:
+		context = PREPOST;
+		result = prepost_unlink(path);
+		break;
+	case PREPOST:
+		context = ORIGINAL;
+	case ORIGINAL:
+		result = original_unlink(path);
+		break;
 	}
 
 	context = saved_context;
@@ -298,17 +298,17 @@ int rmdir(const char *path)
 	enum intercept_id saved_context = context;
 
 	switch (context) {
-		case NONE:
-		case NOCACHE:
-		case CONFIG:
-			context = PREPOST;
-			result = prepost_rmdir(path);
-			break;
-		case PREPOST:
-			context = ORIGINAL;
-		case ORIGINAL:
-			result = original_rmdir(path);
-			break;
+	case NONE:
+	case NOCACHE:
+	case CONFIG:
+		context = PREPOST;
+		result = prepost_rmdir(path);
+		break;
+	case PREPOST:
+		context = ORIGINAL;
+	case ORIGINAL:
+		result = original_rmdir(path);
+		break;
 	}
 
 	context = saved_context;
