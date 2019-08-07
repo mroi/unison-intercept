@@ -112,10 +112,9 @@ extension Tests {
 			#postcmd = run 4
 			""")
 		let command = "#!/bin/sh\nprintf $1 >> $UNISON/trace\n"
-		let configDir = Tests.root.appendingPathComponent(".unison")
-		let commandFile = configDir.appendingPathComponent("run")
-		let archiveFile = configDir.appendingPathComponent("ar00000000000000000000000000000000")
-		let traceFile = configDir.appendingPathComponent("trace")
+		let commandFile = Tests.root.appendingPathComponent(".unison/run")
+		let archiveFile = Tests.root.appendingPathComponent(".unison/ar00000000000000000000000000000000")
+		let traceFile = Tests.root.appendingPathComponent(".unison/trace")
 		let triggerFile = Tests.root.appendingPathComponent("trigger")
 
 		// put command script in unison folder
