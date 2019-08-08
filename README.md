@@ -25,7 +25,7 @@ when launching Unison.
 Intercept Functionality
 -----------------------
 
-Currently, three intercept layers are provided, which add the following features to Unison:
+Currently, four intercept layers are provided, which add the following features to Unison:
 
 **nocache**  
 Cause all writes performed by Unison to bypass the buffer cache. This has two advantages: It 
@@ -43,6 +43,10 @@ Runs pre and post processing commands. Global pre and post commands, which execu
 synchronisation starts and completes, are configured as `#precmd = COMMAND` and
 `#postcmd = COMMAND`. Lines of the form `#post = Path PATH -> COMMAND` cause a command to be 
 executed whenever a specific file has been changed.
+
+**symlink**  
+Creates symlinks for a specified path name before they are traversed by Unison. The path and 
+link content are configured using `#symlink = Path PATH -> TARGET`.
 
 Sandboxing
 ----------

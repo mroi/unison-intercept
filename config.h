@@ -21,6 +21,11 @@ extern struct config_s {
 		char *command;
 		struct post_s *next;
 	} *post;
+	struct symlink_s {
+		struct string_s path;
+		char *target;
+		struct symlink_s *next;
+	} *symlink;
 	struct buffer_s {
 		char *buffer;
 		size_t size;

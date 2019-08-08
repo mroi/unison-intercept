@@ -87,6 +87,8 @@ extension Tests {
 			#postcmd = JgEPTRILIb
 			#post    = Path FUHP/kwuwu -> 3RXO7ZAC5w
 			#post    = Path A/eiVQBcyU -> 7RqAcYFY0d
+			#symlink = Path aTp9W/HNyp -> CPYYlSAK3G
+			#symlink = Path Qz/UR -> IZMryE2y93
 			""")
 		XCTAssert(String(cString: config.root.0.string) == "/fcChXfYky")
 		XCTAssert(String(cString: config.root.1.string) == "/ZIopXJKWq")
@@ -96,6 +98,10 @@ extension Tests {
 		XCTAssert(String(cString: config.post.pointee.command) == "3RXO7ZAC5w")
 		XCTAssert(String(cString: config.post.pointee.next.pointee.pattern.string) == "A/eiVQBcyU")
 		XCTAssert(String(cString: config.post.pointee.next.pointee.command) == "7RqAcYFY0d")
+		XCTAssert(String(cString: config.symlink.pointee.path.string) == "Qz/UR")
+		XCTAssert(String(cString: config.symlink.pointee.target) == "IZMryE2y93")
+		XCTAssert(String(cString: config.symlink.pointee.next.pointee.path.string) == "aTp9W/HNyp")
+		XCTAssert(String(cString: config.symlink.pointee.next.pointee.target) == "CPYYlSAK3G")
 	}
 
 	func testPrePost() {

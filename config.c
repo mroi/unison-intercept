@@ -17,7 +17,7 @@
 #define UNISON_DIR2 "Library/Application Support/Unison"
 
 enum entry_type {
-	ENTRY_ROOT, ENTRY_PRE_CMD, ENTRY_POST_CMD, ENTRY_POST_PATH
+	ENTRY_ROOT, ENTRY_PRE_CMD, ENTRY_POST_CMD, ENTRY_POST_PATH, ENTRY_SYMLINK
 };
 
 
@@ -41,6 +41,7 @@ static struct parse_s {
 	{ .type = ENTRY_PRE_CMD, .pattern = "^#precmd *= *.*" },
 	{ .type = ENTRY_POST_CMD, .pattern = "^#postcmd *= *.*" },
 	{ .type = ENTRY_POST_PATH, .pattern = "^#post *= *Path *.*" },
+	{ .type = ENTRY_SYMLINK, .pattern = "^#symlink *= *Path *.*" }
 };
 #pragma clang diagnostic pop
 static struct buffer_s argument = { .buffer = NULL, .size = 0 };
@@ -52,6 +53,7 @@ struct config_s config = {
 	.pre_command = NULL,
 	.post_command = NULL,
 	.post = NULL,
+	.symlink = NULL,
 	.scratchpad = { .buffer = NULL, .size = 0 }
 };
 
@@ -296,6 +298,25 @@ static void process_entry(enum entry_type type)
 		*last_post = new_post;
 		pthread_mutex_unlock(&config.lock);
 		break;
+
+	case ENTRY_SYMLINK:
+		if (!attribute) break;
+		struct symlink_s *new_link = malloc(sizeof(struct symlink_s));
+		if (!new_link) break;
+		new_link->path.string = strdup(argument.buffer);
+		new_link->path.length = strlen(argument.buffer);
+		new_link->target = strdup(attribute);
+		new_link->next = NULL;
+		pthread_mutex_lock(&config.lock);
+		// ordering by length causes O(n²) complexity, but ensures processing in path nesting order
+		struct symlink_s **cur_link;
+		for (cur_link = &config.symlink; *cur_link; cur_link = &(*cur_link)->next) {
+			if ((*cur_link)->path.length > new_link->path.length) break;
+		}
+		new_link->next = *cur_link;
+		*cur_link = new_link;
+		pthread_mutex_unlock(&config.lock);
+		break;
 	}
 
 	argument.buffer[0] = '\0';
@@ -324,6 +345,15 @@ void config_reset(void)
 		free(save_post);
 	}
 	config.post = NULL;
+
+	for (struct symlink_s *symlink = config.symlink; symlink;) {
+		free(symlink->path.string);
+		free(symlink->target);
+		struct symlink_s *save_symlink = symlink;
+		symlink = symlink->next;
+		free(save_symlink);
+	}
+	config.symlink = NULL;
 
 	config_expected = true;
 
