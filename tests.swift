@@ -51,6 +51,20 @@ class Tests: XCTestCase {
 		}
 	}
 
+	private func traverse(_ path: URL) {
+		_ = path.withUnsafeFileSystemRepresentation {
+			closedir(opendir($0))
+		}
+	}
+
+	private func inspect(_ file: URL) {
+		_ = file.withUnsafeFileSystemRepresentation {
+			let statBuffer = UnsafeMutablePointer<stat>.allocate(capacity: 1)
+			defer { statBuffer.deallocate() }
+			stat($0!, statBuffer)
+		}
+	}
+
 	private func touch(_ file: URL) {
 		_ = file.withUnsafeFileSystemRepresentation {
 			close(interceptOpen($0!, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR))
@@ -130,5 +144,29 @@ extension Tests {
 		// remove archive file to trigger global post command
 		remove(archiveFile)
 		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "1234")
+	}
+
+	func testSymlink() {
+		loadProfile("""
+			#symlink = Path link -> subdir
+			#symlink = Path subdir/subsubdir/link -> notexist
+			""")
+		let symlink1 = Tests.root.appendingPathComponent("link")
+		let subdir = Tests.root.appendingPathComponent("subdir")
+		let subsubdir = Tests.root.appendingPathComponent("subdir/subsubdir")
+		let symlink2 = Tests.root.appendingPathComponent("subdir/subsubdir/link")
+
+		// trigger creation of first level symlinks/directories
+		traverse(Tests.root)
+		XCTAssert(try! files.destinationOfSymbolicLink(atPath: symlink1.path) == "subdir")
+		XCTAssert(files.fileExists(atPath: subdir.path))
+		// trigger creation of second level symlinks/directories
+		inspect(subsubdir)
+		XCTAssertTrue(files.fileExists(atPath: subsubdir.path))
+		XCTAssertFalse(files.fileExists(atPath: symlink2.path))
+		// trigger creation of third level symlinks/directories
+		traverse(subsubdir)
+		XCTAssert(try! files.destinationOfSymbolicLink(atPath: symlink1.path) == "subdir")
+		XCTAssertThrowsError(try files.destinationOfSymbolicLink(atPath: symlink2.path))
 	}
 }

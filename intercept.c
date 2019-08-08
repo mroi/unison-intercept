@@ -24,9 +24,11 @@
 #include "nocache.h"
 #include "config.h"
 #include "prepost.h"
+#include "symlink.h"
 
 #include <stdio.h>
 #include <fcntl.h>
+#include <dirent.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
@@ -53,7 +55,8 @@ enum intercept_id {
 	NONE,
 	NOCACHE,   // disable caching of file writes
 	CONFIG,    // process our own entries in Unison config files
-	PREPOST,      // execute post scripts when files change
+	PREPOST,   // execute post scripts when files change
+	SYMLINK,   // create symlinks before traversing directories
 	ORIGINAL
 };
 
@@ -96,6 +99,7 @@ static void *profile_intercept(id self, SEL command, void *arg1)
 	// the user changed to a different Unison profile, call reset functions
 	config_reset();
 	prepost_reset();
+	symlink_reset();
 	return previous_implementation(self, command, arg1);
 }
 
@@ -135,6 +139,7 @@ int open(const char *path, int flags, ...)
 			result = prepost_open(path, flags);
 		break;
 	case PREPOST:
+	case SYMLINK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		if (flags & O_CREAT)
@@ -163,6 +168,7 @@ int close(int fd)
 		break;
 	case CONFIG:
 	case PREPOST:
+	case SYMLINK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_close(fd);
@@ -187,6 +193,7 @@ ssize_t read(int fd, void *buf, size_t bytes)
 		break;
 	case CONFIG:
 	case PREPOST:
+	case SYMLINK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_read(fd, buf, bytes);
@@ -211,6 +218,10 @@ int stat(const char * restrict path, struct stat * restrict buf)
 		result = prepost_stat(path, buf);
 		break;
 	case PREPOST:
+		context = SYMLINK;
+		result = symlink_stat(path, buf);
+		break;
+	case SYMLINK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_stat(path, buf);
@@ -235,6 +246,10 @@ int lstat(const char * restrict path, struct stat * restrict buf)
 		result = prepost_lstat(path, buf);
 		break;
 	case PREPOST:
+		context = SYMLINK;
+		result = symlink_lstat(path, buf);
+		break;
+	case SYMLINK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_lstat(path, buf);
@@ -259,6 +274,7 @@ int rename(const char *old, const char *new)
 		result = prepost_rename(old, new);
 		break;
 	case PREPOST:
+	case SYMLINK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_rename(old, new);
@@ -283,9 +299,64 @@ int unlink(const char *path)
 		result = prepost_unlink(path);
 		break;
 	case PREPOST:
+	case SYMLINK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_unlink(path);
+		break;
+	}
+
+	context = saved_context;
+	return result;
+}
+
+DIR *opendir(const char *path)
+{
+	ORIGINAL_SYMBOL(opendir, (const char *path))
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+	DIR *(*typecorrect_original_opendir)(const char *path) = original_opendir;
+#pragma clang diagnostic pop
+	DIR *result;
+	enum intercept_id saved_context = context;
+
+	switch (context) {
+	case NONE:
+	case NOCACHE:
+	case CONFIG:
+	case PREPOST:
+		context = SYMLINK;
+		result = symlink_opendir(path);
+		break;
+	case SYMLINK:
+		context = ORIGINAL;
+	case ORIGINAL:
+		result = typecorrect_original_opendir(path);
+		break;
+	}
+
+	context = saved_context;
+	return result;
+}
+
+int closedir(DIR *dir)
+{
+	ORIGINAL_SYMBOL(closedir, (DIR *dir))
+	int result;
+	enum intercept_id saved_context = context;
+
+	switch (context) {
+	case NONE:
+	case NOCACHE:
+	case CONFIG:
+	case PREPOST:
+		context = SYMLINK;
+		result = symlink_closedir(dir);
+		break;
+	case SYMLINK:
+		context = ORIGINAL;
+	case ORIGINAL:
+		result = original_closedir(dir);
 		break;
 	}
 
@@ -307,6 +378,7 @@ int rmdir(const char *path)
 		result = prepost_rmdir(path);
 		break;
 	case PREPOST:
+	case SYMLINK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_rmdir(path);
