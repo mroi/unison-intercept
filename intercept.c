@@ -14,7 +14,10 @@
 
 #ifdef __APPLE__
 #include <string.h>
-#include <SystemConfiguration/SystemConfiguration.h>
+#include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFString.h>
+#include <SystemConfiguration/SCDynamicStoreCopySpecific.h>
+#include <objc/objc.h>
 #include <objc/runtime.h>
 #endif
 
@@ -26,7 +29,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 
 #define ORIGINAL_SYMBOL(symbol, arguments) \
 	static int (*original_##symbol)arguments; \
@@ -94,7 +96,7 @@ static void *profile_intercept(id self, SEL command, void *arg1)
 	// the user changed to a different Unison profile, call reset functions
 	config_reset();
 	prepost_reset();
-	previous_implementation(self, command, arg1);
+	return previous_implementation(self, command, arg1);
 }
 
 #endif
