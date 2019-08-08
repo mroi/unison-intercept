@@ -57,9 +57,9 @@ class Tests: XCTestCase {
 		}
 	}
 
-	private func unlink(_ file: URL) {
+	private func remove(_ file: URL) {
 		_ = file.withUnsafeFileSystemRepresentation {
-			Darwin.unlink($0!)
+			unlink($0!)
 		}
 	}
 
@@ -125,10 +125,10 @@ extension Tests {
 		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "1")
 		// trigger per-file post command
 		touch(triggerFile)
-		unlink(triggerFile)
+		remove(triggerFile)
 		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "123")
-		// unlink archive file to trigger global post command
-		unlink(archiveFile)
+		// remove archive file to trigger global post command
+		remove(archiveFile)
 		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "1234")
 	}
 }
