@@ -12,6 +12,7 @@
 #include "symlink.h"
 
 
+static pthread_mutex_t dirmap_lock = PTHREAD_MUTEX_INITIALIZER;
 static struct dirmap_s {
 	const DIR *dir;
 	char *path;
@@ -49,11 +50,13 @@ DIR *symlink_opendir(const char *path)
 	DIR *dir = opendir(path);
 
 	// remember mapping from dir to path for cleanup
+	pthread_mutex_lock(&dirmap_lock);
 	struct dirmap_s *entry = malloc(sizeof(struct dirmap_s));
 	entry->dir = dir;
 	entry->path = strdup(path);
 	entry->next = dirmap;
 	dirmap = entry;
+	pthread_mutex_unlock(&dirmap_lock);
 
 	return dir;
 }
@@ -63,17 +66,19 @@ int symlink_closedir(DIR *dir)
 	closedir(dir);
 
 	// pull path information from dirmap
+	pthread_mutex_lock(&dirmap_lock);
 	struct dirmap_s *entry, **prev = &dirmap;
 	for (entry = dirmap; entry; entry = entry->next) {
 		if (entry->dir == dir) break;
 		prev = &entry->next;
 	}
-	if (entry) {
-		symlink_iterate(entry->path, symlink_cleanup_children);
-		*prev = entry->next;
-		free(entry->path);
-		free(entry);
-	}
+	assert(entry);
+	*prev = entry->next;
+	pthread_mutex_unlock(&dirmap_lock);
+
+	symlink_iterate(entry->path, symlink_cleanup_children);
+	free(entry->path);
+	free(entry);
 }
 
 
@@ -169,6 +174,8 @@ static void symlink_cleanup_children(const struct string_s path, const struct st
 
 void symlink_reset(void)
 {
+	pthread_mutex_lock(&dirmap_lock);
+
 	struct dirmap_s *next;
 	for (struct dirmap_s *entry = dirmap; entry; entry = next) {
 		next = entry->next;
@@ -176,4 +183,6 @@ void symlink_reset(void)
 		free(entry);
 	}
 	dirmap = NULL;
+
+	pthread_mutex_unlock(&dirmap_lock);
 }
