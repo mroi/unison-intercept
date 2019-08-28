@@ -13,6 +13,7 @@
 #include <dlfcn.h>
 
 #ifdef __APPLE__
+#define OBJC_OLD_DISPATCH_PROTOTYPES 1
 #include <string.h>
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFString.h>
