@@ -17,6 +17,8 @@
 		4C0DE43E202B5E8F00599E41 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0DE43D202B5E8F00599E41 /* SystemConfiguration.framework */; };
 		4C0DE440202B631800599E41 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0DE43F202B631800599E41 /* CoreFoundation.framework */; };
 		4C12B0A9204D9CBD009DFC09 /* libobjc.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C12B0A8204D9CBD009DFC09 /* libobjc.tbd */; };
+		4C67DD7323151CCA00475874 /* umask.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C67DD7123151CCA00475874 /* umask.h */; };
+		4C67DD7423151CCA00475874 /* umask.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C67DD7223151CCA00475874 /* umask.c */; };
 		4CA5AD7E22B6AB6E00CDC63B /* tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB6F39722B6A4B500A00839 /* tests.swift */; };
 		4CB6F39A22B6A4B500A00839 /* libintercept.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0DE428202B56AD00599E41 /* libintercept.dylib */; };
 		4CBC4D3B22CA9C16004FB73C /* symlink.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CBC4D3922CA9C16004FB73C /* symlink.h */; };
@@ -48,6 +50,8 @@
 		4C2840EC22C2B9B5006D457C /* tests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tests.h; sourceTree = "<group>"; };
 		4C2D270E2299C68800D78D42 /* sandbox.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sandbox.c; sourceTree = "<group>"; };
 		4C2D270F2299C68800D78D42 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		4C67DD7123151CCA00475874 /* umask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = umask.h; sourceTree = "<group>"; };
+		4C67DD7223151CCA00475874 /* umask.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = umask.c; sourceTree = "<group>"; };
 		4CB6F39522B6A4B500A00839 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CB6F39722B6A4B500A00839 /* tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tests.swift; sourceTree = "<group>"; };
 		4CBC4D3922CA9C16004FB73C /* symlink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = symlink.h; sourceTree = "<group>"; };
@@ -114,6 +118,8 @@
 				4C0DE430202B5B9000599E41 /* prepost.c */,
 				4CBC4D3922CA9C16004FB73C /* symlink.h */,
 				4CBC4D3A22CA9C16004FB73C /* symlink.c */,
+				4C67DD7123151CCA00475874 /* umask.h */,
+				4C67DD7223151CCA00475874 /* umask.c */,
 			);
 			name = Intercepts;
 			sourceTree = "<group>";
@@ -138,6 +144,7 @@
 				4C0DE43B202B5B9000599E41 /* nocache.h in Headers */,
 				4C0DE43A202B5B9000599E41 /* config.h in Headers */,
 				4CBC4D3B22CA9C16004FB73C /* symlink.h in Headers */,
+				4C67DD7323151CCA00475874 /* umask.h in Headers */,
 				4C0DE438202B5B9000599E41 /* prepost.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -250,7 +257,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/usr/libexec/PlistBuddy \"$SCRIPT_OUTPUT_FILE_0\" <<- EOF\n\tAdd :CFBundleExecutable string \"$EXECUTABLE_NAME\"\n\tAdd :CFBundleIdentifier string \"$PRODUCT_BUNDLE_IDENTIFIER\"\n\tAdd :CFBundleName string \"$PRODUCT_NAME\"\n\tAdd :CFBundlePackageType string \"$PRODUCT_BUNDLE_PACKAGE_TYPE\"\n\tAdd :CFBundleVersion string 1\n\tSave\nEOF\n";
+			shellScript = "/usr/libexec/PlistBuddy \"$SCRIPT_OUTPUT_FILE_0\" <<- EOF\n\tClear dict\n\tAdd :CFBundleExecutable string \"$EXECUTABLE_NAME\"\n\tAdd :CFBundleIdentifier string \"$PRODUCT_BUNDLE_IDENTIFIER\"\n\tAdd :CFBundleName string \"$PRODUCT_NAME\"\n\tAdd :CFBundlePackageType string \"$PRODUCT_BUNDLE_PACKAGE_TYPE\"\n\tAdd :CFBundleVersion string 1\n\tSave\nEOF\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -263,6 +270,7 @@
 				4C0DE42E202B5AC900599E41 /* intercept.c in Sources */,
 				4C0DE439202B5B9000599E41 /* nocache.c in Sources */,
 				4C0DE437202B5B9000599E41 /* config.c in Sources */,
+				4C67DD7423151CCA00475874 /* umask.c in Sources */,
 				4C0DE436202B5B9000599E41 /* prepost.c in Sources */,
 				4CBC4D3C22CA9C16004FB73C /* symlink.c in Sources */,
 			);
@@ -321,7 +329,6 @@
 		4C0DE42B202B56AD00599E41 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Michael Roitzsch";
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
 				DYLIB_CURRENT_VERSION = 1281.0.0;
 				EXECUTABLE_PREFIX = lib;

@@ -26,6 +26,7 @@
 #include "config.h"
 #include "prepost.h"
 #include "symlink.h"
+#include "umask.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -58,6 +59,7 @@ enum intercept_id {
 	CONFIG,    // process our own entries in Unison config files
 	PREPOST,   // execute post scripts when files change
 	SYMLINK,   // create symlinks before traversing directories
+	UMASK,     // restricts umask in home directory
 	ORIGINAL
 };
 
@@ -141,6 +143,13 @@ int open(const char *path, int flags, ...)
 		break;
 	case PREPOST:
 	case SYMLINK:
+		context = UMASK;
+		if (flags & O_CREAT)
+			result = umask_open(path, flags, va_arg(arg, unsigned));
+		else
+			result = umask_open(path, flags);
+		break;
+	case UMASK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		if (flags & O_CREAT)
@@ -170,6 +179,7 @@ int close(int fd)
 	case CONFIG:
 	case PREPOST:
 	case SYMLINK:
+	case UMASK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_close(fd);
@@ -195,6 +205,7 @@ ssize_t read(int fd, void *buf, size_t bytes)
 	case CONFIG:
 	case PREPOST:
 	case SYMLINK:
+	case UMASK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_read(fd, buf, bytes);
@@ -223,6 +234,7 @@ int stat(const char * restrict path, struct stat * restrict buf)
 		result = symlink_stat(path, buf);
 		break;
 	case SYMLINK:
+	case UMASK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_stat(path, buf);
@@ -251,6 +263,7 @@ int lstat(const char * restrict path, struct stat * restrict buf)
 		result = symlink_lstat(path, buf);
 		break;
 	case SYMLINK:
+	case UMASK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_lstat(path, buf);
@@ -276,9 +289,36 @@ int rename(const char *old, const char *new)
 		break;
 	case PREPOST:
 	case SYMLINK:
+	case UMASK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_rename(old, new);
+		break;
+	}
+
+	context = saved_context;
+	return result;
+}
+
+int symlink(const char *target, const char *path)
+{
+	ORIGINAL_SYMBOL(symlink, (const char *target, const char *path))
+	int result;
+	enum intercept_id saved_context = context;
+
+	switch (context) {
+	case NONE:
+	case NOCACHE:
+	case CONFIG:
+	case PREPOST:
+	case SYMLINK:
+		context = UMASK;
+		result = umask_symlink(target, path);
+		break;
+	case UMASK:
+		context = ORIGINAL;
+	case ORIGINAL:
+		result = original_symlink(target, path);
 		break;
 	}
 
@@ -301,6 +341,7 @@ int unlink(const char *path)
 		break;
 	case PREPOST:
 	case SYMLINK:
+	case UMASK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_unlink(path);
@@ -330,6 +371,7 @@ DIR *opendir(const char *path)
 		result = symlink_opendir(path);
 		break;
 	case SYMLINK:
+	case UMASK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = typecorrect_original_opendir(path);
@@ -355,9 +397,36 @@ int closedir(DIR *dir)
 		result = symlink_closedir(dir);
 		break;
 	case SYMLINK:
+	case UMASK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_closedir(dir);
+		break;
+	}
+
+	context = saved_context;
+	return result;
+}
+
+int mkdir(const char *path, mode_t mode)
+{
+	ORIGINAL_SYMBOL(mkdir, (const char *path, mode_t mode))
+	int result;
+	enum intercept_id saved_context = context;
+
+	switch (context) {
+	case NONE:
+	case NOCACHE:
+	case CONFIG:
+	case PREPOST:
+	case SYMLINK:
+		context = UMASK;
+		result = umask_mkdir(path, mode);
+		break;
+	case UMASK:
+		context = ORIGINAL;
+	case ORIGINAL:
+		result = original_mkdir(path, mode);
 		break;
 	}
 
@@ -380,6 +449,7 @@ int rmdir(const char *path)
 		break;
 	case PREPOST:
 	case SYMLINK:
+	case UMASK:
 		context = ORIGINAL;
 	case ORIGINAL:
 		result = original_rmdir(path);

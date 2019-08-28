@@ -25,7 +25,7 @@ when launching Unison.
 Intercept Functionality
 -----------------------
 
-Currently, four intercept layers are provided, which add the following features to Unison:
+Currently, five intercept layers are provided, which add the following features to Unison:
 
 **nocache**  
 Cause all writes performed by Unison to bypass the buffer cache. This has two advantages: It 
@@ -47,6 +47,10 @@ executed whenever a specific file has been changed.
 **symlink**  
 Creates symlinks for a specified path name before they are traversed by Unison. The path and 
 link content are configured using `#symlink = Path PATH -> TARGET`.
+
+**umask**  
+Files created in the user’s home directory employ a `umask` of 0700. This restriction does 
+not apply to subdirectories or explicit permission changes with `chmod`.
 
 Sandboxing
 ----------
