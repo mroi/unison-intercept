@@ -304,6 +304,9 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wpedantic",
 					"-Weverything",
 					"-Wno-gnu-label-as-value",
 				);
@@ -320,6 +323,9 @@
 				GCC_C_LANGUAGE_STANDARD = c11;
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wpedantic",
 					"-Weverything",
 					"-Wno-gnu-label-as-value",
 				);

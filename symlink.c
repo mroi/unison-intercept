@@ -63,7 +63,7 @@ DIR *symlink_opendir(const char *path)
 
 int symlink_closedir(DIR *dir)
 {
-	closedir(dir);
+	int result = closedir(dir);
 
 	// pull path information from dirmap
 	pthread_mutex_lock(&dirmap_lock);
@@ -79,6 +79,8 @@ int symlink_closedir(DIR *dir)
 	symlink_iterate(entry->path, symlink_cleanup_children);
 	free(entry->path);
 	free(entry);
+
+	return result;
 }
 
 
@@ -128,6 +130,7 @@ static void symlink_prepare(const struct string_s path, const struct string_s li
 
 static void symlink_cleanup(const struct string_s path, const struct string_s link, const char *target)
 {
+	(void)target;
 	if (path.length == link.length) {
 		// since we know path is a prefix, we now know path is equal to the link directive
 		struct stat s;
@@ -157,6 +160,7 @@ static void symlink_prepare_children(const struct string_s path, const struct st
 
 static void symlink_cleanup_children(const struct string_s path, const struct string_s link, const char *target)
 {
+	(void)target;
 	if (path.length < link.length && link.string[path.length] == '/') {
 		// path is a proper parent directory of the link directive
 		const char *child_path = link.string + path.length + 1;
