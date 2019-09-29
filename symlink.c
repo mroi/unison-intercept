@@ -92,25 +92,24 @@ static void symlink_iterate(const char *path, void (*f)(const struct string_s pa
 
 	pthread_mutex_lock(&config.lock);
 	for (struct symlink_s *link = config.symlink; link; link = link->next) {
-		for (size_t i = 0; i < sizeof(config.root) / sizeof(config.root[0]); i++) {
-			if (config.root[i].string) {
-				size_t size = config.root[i].length + sizeof("/") + link->path.length;
-				scratchpad_alloc(&config.scratchpad, size);
-				sprintf(config.scratchpad.buffer, "%s/%s", config.root[i].string, link->path.string);
+		if (config.root[1].string) {
+			size_t size = config.root[1].length + sizeof("/") + link->path.length;
+			scratchpad_alloc(&config.scratchpad, size);
+			sprintf(config.scratchpad.buffer, "%s/%s", config.root[1].string, link->path.string);
 
-				if (strncmp(path, config.scratchpad.buffer, path_length) == 0) {
-					// path is a prefix of the link directive
-					const struct string_s path_string = {
-						.string = strdup(path),
-						.length = path_length
-					};
-					const struct string_s link_string = {
-						.string = config.scratchpad.buffer,
-						.length = size
-					};
-					f(path_string, link_string, link->target);
-					free(path_string.string);
-				}
+			if (strncmp(path, config.scratchpad.buffer, path_length) == 0) {
+				// path is a prefix of the link directive
+				const struct string_s path_string = {
+					.string = strdup(path),
+					.length = path_length
+				};
+				const struct string_s link_string = {
+					.string = config.scratchpad.buffer,
+					.length = size
+				};
+				f(path_string, link_string, link->target);
+				// f may manipulate its argument strings in-place
+				free(path_string.string);
 			}
 		}
 	}

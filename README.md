@@ -46,7 +46,8 @@ executed whenever a specific file has been changed.
 
 **symlink**  
 Creates symlinks for a specified path name before they are traversed by Unison. The path and 
-link content are configured using `#symlink = Path PATH -> TARGET`.
+link content are configured using `#symlink = Path PATH -> TARGET`. Symlinks are only 
+created within the second initialized Unison root.
 
 **umask**  
 Files created in the user’s home directory employ a `umask` of 0700. This restriction does 
