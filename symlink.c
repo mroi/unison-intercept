@@ -170,7 +170,14 @@ static void symlink_cleanup_children(const struct string_s path, const struct st
 			struct stat s;
 			bool is_symlink = lstat(link.string, &s) == 0 && (s.st_mode & S_IFLNK);
 			bool is_broken = is_symlink && stat(link.string, &s) != 0 && errno == ENOENT;
-			if (is_broken) unlink(link.string);
+			if (is_broken) {
+				unlink(link.string);
+				// unlink empty parent directories
+				do {
+					char *last_slash = strrchr(link.string, '/');
+					if (last_slash) *last_slash = '\0';
+				} while (rmdir(link.string) == 0);
+			}
 		}
 	}
 }
