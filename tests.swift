@@ -42,11 +42,11 @@ class Tests: XCTestCase {
 
 		// pass root directory to config
 		if config.root.0.string == .none {
+			URL(fileURLWithPath: "/var/empty").withUnsafeFileSystemRepresentation {
+				config.root.0 = string_s(string: strdup($0!), length: strlen($0!))
+			}
 			Tests.root.withUnsafeFileSystemRepresentation {
-				let length = strlen($0!)
-				let root = UnsafeMutablePointer<CChar>.allocate(capacity: length + 1)
-				root.assign(from: $0!, count: length + 1)
-				config.root.0 = string_s(string: root, length: length)
+				config.root.1 = string_s(string: strdup($0!), length: strlen($0!))
 			}
 		}
 	}
