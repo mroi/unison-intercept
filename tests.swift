@@ -52,13 +52,13 @@ class Tests: XCTestCase {
 	}
 
 	private func traverse(_ path: URL) {
-		_ = path.withUnsafeFileSystemRepresentation {
-			closedir(opendir($0))
+		path.withUnsafeFileSystemRepresentation {
+			_ = closedir(opendir($0))
 		}
 	}
 
 	private func inspect(_ file: URL) {
-		_ = file.withUnsafeFileSystemRepresentation {
+		file.withUnsafeFileSystemRepresentation {
 			let statBuffer = UnsafeMutablePointer<stat>.allocate(capacity: 1)
 			defer { statBuffer.deallocate() }
 			stat($0!, statBuffer)
@@ -66,14 +66,14 @@ class Tests: XCTestCase {
 	}
 
 	private func touch(_ file: URL) {
-		_ = file.withUnsafeFileSystemRepresentation {
-			close(interceptOpen($0!, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR))
+		file.withUnsafeFileSystemRepresentation {
+			_ = close(interceptOpen($0!, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR))
 		}
 	}
 
 	private func remove(_ file: URL) {
-		_ = file.withUnsafeFileSystemRepresentation {
-			unlink($0!)
+		file.withUnsafeFileSystemRepresentation {
+			_ = unlink($0!)
 		}
 	}
 

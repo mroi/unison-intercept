@@ -13,7 +13,6 @@
 #include <dlfcn.h>
 
 #ifdef __APPLE__
-#define OBJC_OLD_DISPATCH_PROTOTYPES 1
 #include <string.h>
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFString.h>
@@ -69,8 +68,9 @@ static _Thread_local enum intercept_id context = NONE;
 #ifdef __APPLE__
 
 /* Objective-C method swizzling to intercept connections to a new profile */
-static IMP previous_implementation;
-static void *profile_intercept(id self, SEL command, void *arg1);
+typedef void connect_method(id self, SEL selector, void *arg);
+static connect_method *previous_implementation;
+static void profile_intercept(id self, SEL command, void *arg);
 
 static void __attribute__((constructor)) initialize(void)
 {
@@ -93,17 +93,17 @@ static void __attribute__((constructor)) initialize(void)
 	assert(class && selector);
 	Method method = class_getInstanceMethod(class, selector);
 	assert(method);
-	previous_implementation = method_setImplementation(method, (IMP)profile_intercept);
+	previous_implementation = (connect_method *)method_setImplementation(method, (IMP)profile_intercept);
 	assert(previous_implementation);
 }
 
-static void *profile_intercept(id self, SEL command, void *arg1)
+static void profile_intercept(id self, SEL command, void *arg)
 {
 	// the user changed to a different Unison profile, call reset functions
 	config_reset();
 	prepost_reset();
 	symlink_reset();
-	return previous_implementation(self, command, arg1);
+	previous_implementation(self, command, arg);
 }
 
 #endif
