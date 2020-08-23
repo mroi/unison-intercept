@@ -62,19 +62,19 @@ int prepost_lstat(const char * restrict path, struct stat * restrict buf)
 
 int prepost_rename(const char *old, const char *new)
 {
-	prepostcmd_finalize(new);
 	int result = rename(old, new);
 	if (result == 0)
 		post_recurse(new);
+	prepostcmd_finalize(new);
 	return result;
 }
 
 int prepost_unlink(const char *path)
 {
-	prepostcmd_finalize(path);
 	int result = unlink(path);
 	if (result == 0)
 		post_check(path);
+	prepostcmd_finalize(path);
 	return result;
 }
 
