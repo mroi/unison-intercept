@@ -1,3 +1,4 @@
+import System
 import XCTest
 
 // satisfy the method swizzling in the intercept constructor
@@ -28,17 +29,11 @@ class Tests: XCTestCase {
 		let profileFile = configDir.appendingPathComponent("default.prf")
 		try! profile.write(to: profileFile, atomically: false, encoding: .utf8)
 
-		// POSIX read() so that the config intercept layer parses the profile
-		profileFile.withUnsafeFileSystemRepresentation {
-			let fd = interceptOpen($0!, O_RDONLY)
-			defer { close(fd) }
-			let chunkSize = 64
-			let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: chunkSize, alignment: 1)
-			var bytesRead: Int
-			repeat {
-				bytesRead = read(fd, buffer.baseAddress, chunkSize)
-			} while bytesRead > 0
-		}
+		// use POSIX open()/read() so the config intercept layer parses the profile
+		let fd = interceptOpen(profileFile.path, FileDescriptor.AccessMode.readOnly.rawValue)
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 64, alignment: 1)
+		while read(fd, buffer.baseAddress, buffer.count) > 0 {}
+		close(fd)
 
 		// pass root directory to config
 		if config.root.0.string == .none {
