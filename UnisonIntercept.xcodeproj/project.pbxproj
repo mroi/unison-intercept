@@ -195,7 +195,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1020;
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1220;
 				TargetAttributes = {
 					4C0DE427202B56AD00599E41 = {
 						CreatedOnToolsVersion = 9.2;
@@ -336,11 +336,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
-				DYLIB_CURRENT_VERSION = 1281.100.1;
+				DYLIB_CURRENT_VERSION = 1292.0.0;
 				EXECUTABLE_PREFIX = lib;
 				INSTALL_GROUP = admin;
 				INSTALL_PATH = "$(UNISON_PATH)/Contents/MacOS/";
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REEXPORTED_LIBRARY_NAMES = System;
 				STRIP_INSTALLED_PRODUCT = NO;
@@ -352,11 +352,11 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Michael Roitzsch";
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
-				DYLIB_CURRENT_VERSION = 1281.100.1;
+				DYLIB_CURRENT_VERSION = 1292.0.0;
 				EXECUTABLE_PREFIX = lib;
 				INSTALL_GROUP = admin;
 				INSTALL_PATH = "$(UNISON_PATH)/Contents/MacOS/";
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REEXPORTED_LIBRARY_NAMES = System;
 				STRIP_INSTALLED_PRODUCT = NO;
