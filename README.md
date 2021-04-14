@@ -77,5 +77,4 @@ A directory, where Unison shall store its archive files. This directory is alway
 accessible, even if located outside the sandbox prefix.
 
 ___
-This work is licensed under the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html) or 
-higher.
+This work is licensed under the [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).
