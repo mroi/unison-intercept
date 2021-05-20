@@ -7,7 +7,11 @@ OBJ = $(SRC:.c=.o)
 TGT = $(HOME)/.unison/$(INT)
 
 CFLAGS = -std=c11 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -O3 -fPIC $(WARNINGS)
-WARNINGS = -Weverything -Wno-static-in-inline -Wno-gnu-label-as-value
+ifeq ($(shell $(CC) --version | grep -o clang | head -n1),clang)
+WARNINGS = -Weverything -Wno-gnu-label-as-value -Wno-poison-system-directories
+else
+WARNINGS = -Wall -Wextra -Wno-unknown-pragmas
+endif
 
 .PHONY: intercept sandbox all install clean
 
