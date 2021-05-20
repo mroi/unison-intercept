@@ -123,7 +123,8 @@ static void symlink_prepare(const struct string_s path, const struct string_s li
 		mkdir(path.string, S_IRWXU | S_IRWXG | S_IRWXO);
 	} else if (path.length == link.length) {
 		// since we know path is a prefix, we now know path is equal to the link directive
-		symlink(target, path.string);
+		int error = symlink(target, path.string);
+		(void)error;  // ignore if symlink could not be created
 	}
 }
 
@@ -152,7 +153,8 @@ static void symlink_prepare_children(const struct string_s path, const struct st
 			mkdir(link.string, S_IRWXU | S_IRWXG | S_IRWXO);
 		} else {
 			// child is last path element, create symlink
-			symlink(target, link.string);
+			int error = symlink(target, link.string);
+			(void)error;  // ignore if symlink could not be created
 		}
 	}
 }

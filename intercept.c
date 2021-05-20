@@ -77,8 +77,8 @@ static void __attribute__((constructor)) initialize(void)
 	// set UNISONLOCALHOSTNAME to the local hostname
 	CFStringRef nameString = SCDynamicStoreCopyLocalHostName(NULL);
 	if (nameString) {
-		CFIndex size = CFStringGetLength(nameString) + sizeof(".local");
-		char *name = malloc(size);
+		CFIndex size = CFStringGetLength(nameString) + (CFIndex)sizeof(".local");
+		char *name = malloc((size_t)size);
 		if (CFStringGetCString(nameString, name, size, kCFStringEncodingASCII)) {
 			name = strcat(name, ".local");
 			setenv("UNISONLOCALHOSTNAME", name, 1);
@@ -114,7 +114,7 @@ static void profile_intercept(id self, SEL command, void *arg)
 int open(const char *path, int flags, ...)
 {
 	ORIGINAL_SYMBOL(open, (const char *path, int flags, ...))
-	int result;
+	int result = 0;
 	enum intercept_id saved_context = context;
 
 	va_list arg;
@@ -151,6 +151,7 @@ int open(const char *path, int flags, ...)
 		break;
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		if (flags & O_CREAT)
 			result = original_open(path, flags, va_arg(arg, unsigned));
@@ -167,7 +168,7 @@ int open(const char *path, int flags, ...)
 int close(int fd)
 {
 	ORIGINAL_SYMBOL(close, (int fd))
-	int result;
+	int result = 0;
 	enum intercept_id saved_context = context;
 
 	switch (context) {
@@ -181,6 +182,7 @@ int close(int fd)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		result = original_close(fd);
 		break;
@@ -193,7 +195,7 @@ int close(int fd)
 ssize_t read(int fd, void *buf, size_t bytes)
 {
 	ORIGINAL_SYMBOL(read, (int fd, void *buf, size_t bytes))
-	ssize_t result;
+	ssize_t result = 0;
 	enum intercept_id saved_context = context;
 
 	switch (context) {
@@ -207,6 +209,7 @@ ssize_t read(int fd, void *buf, size_t bytes)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		result = original_read(fd, buf, bytes);
 		break;
@@ -219,7 +222,7 @@ ssize_t read(int fd, void *buf, size_t bytes)
 int stat(const char * restrict path, struct stat * restrict buf)
 {
 	ORIGINAL_SYMBOL(stat, (const char * restrict path, struct stat * restrict buf))
-	int result;
+	int result = 0;
 	enum intercept_id saved_context = context;
 
 	switch (context) {
@@ -236,6 +239,7 @@ int stat(const char * restrict path, struct stat * restrict buf)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		result = original_stat(path, buf);
 		break;
@@ -248,7 +252,7 @@ int stat(const char * restrict path, struct stat * restrict buf)
 int lstat(const char * restrict path, struct stat * restrict buf)
 {
 	ORIGINAL_SYMBOL(lstat, (const char * restrict path, struct stat * restrict buf))
-	int result;
+	int result = 0;
 	enum intercept_id saved_context = context;
 
 	switch (context) {
@@ -265,6 +269,7 @@ int lstat(const char * restrict path, struct stat * restrict buf)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		result = original_lstat(path, buf);
 		break;
@@ -277,7 +282,7 @@ int lstat(const char * restrict path, struct stat * restrict buf)
 int rename(const char *old, const char *new)
 {
 	ORIGINAL_SYMBOL(rename, (const char *old, const char *new))
-	int result;
+	int result = 0;
 	enum intercept_id saved_context = context;
 
 	switch (context) {
@@ -291,6 +296,7 @@ int rename(const char *old, const char *new)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		result = original_rename(old, new);
 		break;
@@ -303,7 +309,7 @@ int rename(const char *old, const char *new)
 int symlink(const char *target, const char *path)
 {
 	ORIGINAL_SYMBOL(symlink, (const char *target, const char *path))
-	int result;
+	int result = 0;
 	enum intercept_id saved_context = context;
 
 	switch (context) {
@@ -317,6 +323,7 @@ int symlink(const char *target, const char *path)
 		break;
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		result = original_symlink(target, path);
 		break;
@@ -329,7 +336,7 @@ int symlink(const char *target, const char *path)
 int unlink(const char *path)
 {
 	ORIGINAL_SYMBOL(unlink, (const char *path))
-	int result;
+	int result = 0;
 	enum intercept_id saved_context = context;
 
 	switch (context) {
@@ -343,6 +350,7 @@ int unlink(const char *path)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		result = original_unlink(path);
 		break;
@@ -357,9 +365,12 @@ DIR *opendir(const char *path)
 	ORIGINAL_SYMBOL(opendir, (const char *path))
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 	DIR *(*typecorrect_original_opendir)(const char *path) = original_opendir;
 #pragma clang diagnostic pop
-	DIR *result;
+#pragma GCC diagnostic pop
+	DIR *result = NULL;
 	enum intercept_id saved_context = context;
 
 	switch (context) {
@@ -373,6 +384,7 @@ DIR *opendir(const char *path)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		result = typecorrect_original_opendir(path);
 		break;
@@ -385,7 +397,7 @@ DIR *opendir(const char *path)
 int closedir(DIR *dir)
 {
 	ORIGINAL_SYMBOL(closedir, (DIR *dir))
-	int result;
+	int result = 0;
 	enum intercept_id saved_context = context;
 
 	switch (context) {
@@ -399,6 +411,7 @@ int closedir(DIR *dir)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		result = original_closedir(dir);
 		break;
@@ -411,7 +424,7 @@ int closedir(DIR *dir)
 int mkdir(const char *path, mode_t mode)
 {
 	ORIGINAL_SYMBOL(mkdir, (const char *path, mode_t mode))
-	int result;
+	int result = 0;
 	enum intercept_id saved_context = context;
 
 	switch (context) {
@@ -425,6 +438,7 @@ int mkdir(const char *path, mode_t mode)
 		break;
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		result = original_mkdir(path, mode);
 		break;
@@ -437,7 +451,7 @@ int mkdir(const char *path, mode_t mode)
 int rmdir(const char *path)
 {
 	ORIGINAL_SYMBOL(rmdir, (const char *path))
-	int result;
+	int result = 0;
 	enum intercept_id saved_context = context;
 
 	switch (context) {
@@ -451,6 +465,7 @@ int rmdir(const char *path)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
+		// FALLTHROUGH
 	case ORIGINAL:
 		result = original_rmdir(path);
 		break;
