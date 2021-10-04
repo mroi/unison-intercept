@@ -11,12 +11,10 @@ let files = FileManager.default
 
 class Tests: XCTestCase {
 
-	private static let root = determineTestRoot()
-
-	private class func determineTestRoot() -> URL {
+	private static let root: URL = {
 		let unison = ProcessInfo.processInfo.environment["UNISON"]!
 		return URL(fileURLWithPath: unison).deletingLastPathComponent()
-	}
+	}()
 
 	override class func setUp() {
 		try! files.createDirectory(at: root, withIntermediateDirectories: true)
