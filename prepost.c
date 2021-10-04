@@ -164,10 +164,12 @@ static void prepost_run(const char *const_command, const char *path)
 	char *command = strdup(const_command);
 	size_t length = strlen(const_command);
 
-	// separate command string at spaces into arguments
+	// separate command string at unescaped spaces into arguments
 	unsigned num_spaces = 0;
-	for (size_t i = 0; i < length; i++)
+	for (size_t i = 0; i < length; i++) {
 		if (command[i] == ' ') num_spaces++;
+		if (command[i] == '\\') i++;
+	}
 
 	const char ** const arguments = malloc((num_spaces + 3) * sizeof(char *));
 
@@ -177,6 +179,11 @@ static void prepost_run(const char *const_command, const char *path)
 		if (i == 0 || command[i-1] == '\0') {
 			arguments[arg] = command + i;
 			if (command[i] != '\0') arg++;  // handle multiple spaces
+		}
+		if (command[i] == '\\') {
+			memmove(&command[i], &command[i+1], length - (i+1));
+			command[length-1] = '\0';
+			length--;
 		}
 	}
 	arguments[arg++] = path;
