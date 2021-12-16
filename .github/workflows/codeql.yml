@@ -1,5 +1,5 @@
 # static code scan for common security mistakes
-name: "CodeQL"
+name: CodeQL
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
   - cron: '45 17 * * 0'
 
 jobs:
-  analyze:
-    name: Analyze
+  scan:
+    name: CodeQL security analysis
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -17,10 +17,10 @@ jobs:
       security-events: write
 
     steps:
-    - name: Checkout Repository
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Initialize CodeQL
+    - name: Initialize CodeQL database
       uses: github/codeql-action/init@v1
       with:
         languages: 'cpp'
@@ -28,5 +28,5 @@ jobs:
     - name: Autobuild
       uses: github/codeql-action/autobuild@v1
 
-    - name: Perform CodeQL Analysis
+    - name: Perform CodeQL analysis
       uses: github/codeql-action/analyze@v1

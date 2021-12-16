@@ -1,3 +1,5 @@
+[![CodeQL](https://github.com/mroi/unison-intercept/actions/workflows/codeql.yml/badge.svg)](https://github.com/mroi/unison-intercept/actions/workflows/codeql.yml)
+
 Unison libSystem Intercept for macOS
 ====================================
 
