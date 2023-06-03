@@ -61,6 +61,7 @@ static mode_t mode_restrict(const char *path, mode_t mode)
 		char *home_env = getenv("HOME");
 		home.length = strlen(home_env) + sizeof((char)'/');
 		home.string = malloc(home.length + sizeof((char)'\0'));
+		if (!home.string) abort();
 		sprintf(home.string, "%s/", home_env);
 	}
 
