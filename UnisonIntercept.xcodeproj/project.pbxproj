@@ -206,6 +206,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		4C08F4E1202CB3B4001F710D /* Unison Linkage and Signature */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 8;
 			files = (
 			);
