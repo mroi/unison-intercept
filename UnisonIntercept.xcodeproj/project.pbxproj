@@ -10,18 +10,13 @@
 		4C0DE42E202B5AC900599E41 /* intercept.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0DE42D202B5AC900599E41 /* intercept.c */; };
 		4C0DE436202B5B9000599E41 /* prepost.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0DE430202B5B9000599E41 /* prepost.c */; };
 		4C0DE437202B5B9000599E41 /* config.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0DE431202B5B9000599E41 /* config.c */; };
-		4C0DE438202B5B9000599E41 /* prepost.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C0DE432202B5B9000599E41 /* prepost.h */; };
 		4C0DE439202B5B9000599E41 /* nocache.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C0DE433202B5B9000599E41 /* nocache.c */; };
-		4C0DE43A202B5B9000599E41 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C0DE434202B5B9000599E41 /* config.h */; };
-		4C0DE43B202B5B9000599E41 /* nocache.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C0DE435202B5B9000599E41 /* nocache.h */; };
 		4C0DE43E202B5E8F00599E41 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0DE43D202B5E8F00599E41 /* SystemConfiguration.framework */; };
 		4C0DE440202B631800599E41 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0DE43F202B631800599E41 /* CoreFoundation.framework */; };
 		4C12B0A9204D9CBD009DFC09 /* libobjc.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C12B0A8204D9CBD009DFC09 /* libobjc.tbd */; };
-		4C67DD7323151CCA00475874 /* umask.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C67DD7123151CCA00475874 /* umask.h */; };
 		4C67DD7423151CCA00475874 /* umask.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C67DD7223151CCA00475874 /* umask.c */; };
 		4CA5AD7E22B6AB6E00CDC63B /* tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB6F39722B6A4B500A00839 /* tests.swift */; };
 		4CB6F39A22B6A4B500A00839 /* libintercept.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0DE428202B56AD00599E41 /* libintercept.dylib */; };
-		4CBC4D3B22CA9C16004FB73C /* symlink.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CBC4D3922CA9C16004FB73C /* symlink.h */; };
 		4CBC4D3C22CA9C16004FB73C /* symlink.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CBC4D3A22CA9C16004FB73C /* symlink.c */; };
 /* End PBXBuildFile section */
 
@@ -136,21 +131,6 @@
 		};
 /* End PBXGroup section */
 
-/* Begin PBXHeadersBuildPhase section */
-		4C0DE426202B56AD00599E41 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4C0DE43B202B5B9000599E41 /* nocache.h in Headers */,
-				4C0DE43A202B5B9000599E41 /* config.h in Headers */,
-				4CBC4D3B22CA9C16004FB73C /* symlink.h in Headers */,
-				4C67DD7323151CCA00475874 /* umask.h in Headers */,
-				4C0DE438202B5B9000599E41 /* prepost.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXHeadersBuildPhase section */
-
 /* Begin PBXNativeTarget section */
 		4C0DE427202B56AD00599E41 /* intercept */ = {
 			isa = PBXNativeTarget;
@@ -158,7 +138,6 @@
 			buildPhases = (
 				4C0DE424202B56AD00599E41 /* Sources */,
 				4C0DE425202B56AD00599E41 /* Frameworks */,
-				4C0DE426202B56AD00599E41 /* Headers */,
 				4C08F4E1202CB3B4001F710D /* Unison Linkage and Signature */,
 			);
 			buildRules = (
@@ -195,7 +174,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1020;
-				LastUpgradeCheck = 1300;
+				LastUpgradeCheck = 1420;
 				TargetAttributes = {
 					4C0DE427202B56AD00599E41 = {
 						CreatedOnToolsVersion = 9.2;
