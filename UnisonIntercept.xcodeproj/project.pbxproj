@@ -305,7 +305,7 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = (
 					"-Weverything",
@@ -345,7 +345,7 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = (
 					"-Weverything",
@@ -358,7 +358,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
-				DYLIB_CURRENT_VERSION = 1292.0.0;
+				DYLIB_CURRENT_VERSION = 1319.0.0;
 				EXECUTABLE_PREFIX = lib;
 				INSTALL_GROUP = admin;
 				INSTALL_PATH = "$(UNISON_PATH)/Contents/MacOS/";
@@ -374,7 +374,7 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Michael Roitzsch";
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
-				DYLIB_CURRENT_VERSION = 1292.0.0;
+				DYLIB_CURRENT_VERSION = 1319.0.0;
 				EXECUTABLE_PREFIX = lib;
 				INSTALL_GROUP = admin;
 				INSTALL_PATH = "$(UNISON_PATH)/Contents/MacOS/";
