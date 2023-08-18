@@ -43,7 +43,6 @@
 		4C0DE43F202B631800599E41 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		4C12B0A8204D9CBD009DFC09 /* libobjc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libobjc.tbd; path = usr/lib/libobjc.tbd; sourceTree = SDKROOT; };
 		4C2840EC22C2B9B5006D457C /* tests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tests.h; sourceTree = "<group>"; };
-		4C2D270E2299C68800D78D42 /* sandbox.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sandbox.c; sourceTree = "<group>"; };
 		4C2D270F2299C68800D78D42 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		4C67DD7123151CCA00475874 /* umask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = umask.h; sourceTree = "<group>"; };
 		4C67DD7223151CCA00475874 /* umask.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = umask.c; sourceTree = "<group>"; };
@@ -85,7 +84,6 @@
 				4C0DE42D202B5AC900599E41 /* intercept.c */,
 				4C0DE42F202B5ACE00599E41 /* Intercepts */,
 				4C2D270F2299C68800D78D42 /* Makefile */,
-				4C2D270E2299C68800D78D42 /* sandbox.c */,
 				4C2840EC22C2B9B5006D457C /* tests.h */,
 				4CB6F39722B6A4B500A00839 /* tests.swift */,
 				4C0DE43C202B5E8F00599E41 /* Frameworks */,

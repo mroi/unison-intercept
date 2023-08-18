@@ -55,28 +55,5 @@ created within the first Unison root located below the current home directory.
 Files created in the user’s home directory employ a `umask` of 0700. This restriction does 
 not apply to subdirectories or explicit permission changes with `chmod`.
 
-Sandboxing
-----------
-
-When running Unison on a server, the profile controlled by the client dictates, which files 
-the server will access. In order to support untrusted clients, it can be worthwhile to 
-constrain the access the server may exercise.
-
-This sandboxing is implemented as another `LD_PRELOAD` library called `libsandbox.so`. You 
-compile the library using `make sandbox` or as a self-contained build from just the C source 
-file using `sh sandbox.c`. The library is configured by way of three environment variables:
-
-**`SANDBOX_PREFIX`**  
-A path prefix, where Unison is allowed to access files for syncing. Everything outside this 
-prefix is inaccessible.
-
-**`SANDBOX_WRITABLE`**  
-Set this variable, when Unison should be allowed to make changes to files under the sandbox 
-prefix. Otherwise, Unison is only allowed to read.
-
-**`UNISON`**  
-A directory, where Unison shall store its archive files. This directory is always 
-accessible, even if located outside the sandbox prefix.
-
 ___
 This work is licensed under the [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).
