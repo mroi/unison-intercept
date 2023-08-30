@@ -18,6 +18,7 @@ class Tests: XCTestCase {
 
 	override class func setUp() {
 		try! files.createDirectory(at: root, withIntermediateDirectories: true)
+		setenv("HOME", Tests.root.path, 1)
 	}
 
 	private func loadProfile(_ profile: String) {
@@ -60,7 +61,7 @@ class Tests: XCTestCase {
 
 	private func touch(_ file: URL) {
 		file.withUnsafeFileSystemRepresentation {
-			_ = close(interceptOpen($0!, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR))
+			_ = close(interceptOpen($0!, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH))
 		}
 	}
 
@@ -161,5 +162,16 @@ extension Tests {
 		traverse(subsubdir)
 		XCTAssertEqual(try! files.destinationOfSymbolicLink(atPath: symlink1.path), "subdir")
 		XCTAssertThrowsError(try files.destinationOfSymbolicLink(atPath: symlink2.path))
+	}
+
+	func testUmask() {
+		let homeFile = Tests.root.appendingPathComponent("homeFile")
+		let subdir = Tests.root.appendingPathComponent("subdir")
+		let nonHomeFile = subdir.appendingPathComponent("nonHomeFile")
+		try! files.createDirectory(atPath: subdir.path, withIntermediateDirectories: false)
+		touch(homeFile)
+		touch(nonHomeFile)
+		XCTAssertEqual(try! files.attributesOfItem(atPath: homeFile.path)[.posixPermissions]! as! Int, 0o600)
+		XCTAssertEqual(try! files.attributesOfItem(atPath: nonHomeFile.path)[.posixPermissions]! as! Int, 0o644)
 	}
 }
