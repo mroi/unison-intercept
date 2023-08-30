@@ -3,11 +3,11 @@
 Unison libSystem Intercept for macOS
 ====================================
 
-I use the [Unison](https://www.seas.upenn.edu/~bcpierce/unison/) file synchronization tool 
-to keep files between multiple machines and servers up to date. However, I wanted to 
-customize some aspects of Unison’s behavior. Because I did not want to make invasive changes 
-to its codebase, I decided to amend Unison’s functionality from the outside by intercepting 
-its use of the C-level `libSystem` (`libc` on Linux and other Unixes) APIs.
+I use the [Unison](https://github.com/bcpierce00/unison) file synchronization tool to keep 
+files between multiple machines and servers up to date. However, I wanted to customize some 
+aspects of Unison’s behavior. Because I did not want to make invasive changes to its 
+codebase, I decided to amend Unison’s functionality from the outside by intercepting its use 
+of the C-level `libSystem` (`libc` on Linux and other Unixes) APIs.
 
 This project provides a `libintercept.dylib` library, which re-exports all of `libSystem` 
 and can therefore replace it. Selected API calls are replaced or extended with my own 
@@ -42,7 +42,7 @@ additional configuration options used by other intercepts. All additional option
 
 **prepost**  
 Runs pre and post processing commands. Global pre and post commands, which execute once 
-synchronisation starts and completes, are configured as `#precmd = COMMAND` and
+synchronization starts and completes, are configured as `#precmd = COMMAND` and
 `#postcmd = COMMAND`. Lines of the form `#post = Path PATH -> COMMAND` cause a command to be 
 executed whenever a specific file has been changed.
 
