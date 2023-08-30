@@ -97,6 +97,8 @@ extension Tests {
 			#post    = Path A/eiVQBcyU -> 7RqAcYFY0d
 			#symlink = Path aTp9W/HNyp -> CPYYlSAK3G
 			#symlink = Path Qz/UR -> IZMryE2y93
+			#encrypt = Path gsa3M -> aes-256-gcm:KIETRjaSzO
+			#encrypt = Path YkLyVNQUdX -> aes-256-gcm:47klFFHh51
 			""")
 		XCTAssertEqual(String(cString: config.root.0.string), "/fcChXfYky")
 		XCTAssertEqual(String(cString: config.root.1.string), "/ZIopXJKWq")
@@ -110,6 +112,10 @@ extension Tests {
 		XCTAssertEqual(String(cString: config.symlink.pointee.target), "IZMryE2y93")
 		XCTAssertEqual(String(cString: config.symlink.pointee.next.pointee.path.string), "aTp9W/HNyp")
 		XCTAssertEqual(String(cString: config.symlink.pointee.next.pointee.target), "CPYYlSAK3G")
+		XCTAssertEqual(String(cString: config.encrypt.pointee.path.string), "YkLyVNQUdX")
+		XCTAssertEqual(String(cString: config.encrypt.pointee.next.pointee.path.string), "gsa3M")
+		XCTAssertEqual(config.encrypt.pointee.key.0, 193)
+		XCTAssertEqual(config.encrypt.pointee.next.pointee.key.0, 215)
 	}
 
 	func testPrePost() {

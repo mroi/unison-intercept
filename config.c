@@ -12,12 +12,16 @@
 #include <sys/stat.h>
 
 #include "config.h"
+#include "mbedtls/sha256.h"
 
 #define UNISON_DIR1 ".unison"
 #define UNISON_DIR2 "Library/Application Support/Unison"
 
 enum entry_type {
-	ENTRY_ROOT, ENTRY_PRE_CMD, ENTRY_POST_CMD, ENTRY_POST_PATH, ENTRY_SYMLINK
+	ENTRY_ROOT,
+	ENTRY_PRE_CMD, ENTRY_POST_CMD, ENTRY_POST_PATH,
+	ENTRY_SYMLINK,
+	ENTRY_ENCRYPT
 };
 
 
@@ -41,7 +45,8 @@ static struct parse_s {
 	{ .type = ENTRY_PRE_CMD, .pattern = "^#precmd *= *.*" },
 	{ .type = ENTRY_POST_CMD, .pattern = "^#postcmd *= *.*" },
 	{ .type = ENTRY_POST_PATH, .pattern = "^#post *= *Path *.*" },
-	{ .type = ENTRY_SYMLINK, .pattern = "^#symlink *= *Path *.*" }
+	{ .type = ENTRY_SYMLINK, .pattern = "^#symlink *= *Path *.*" },
+	{ .type = ENTRY_ENCRYPT, .pattern = "^#encrypt *= *Path *.*" }
 };
 #pragma clang diagnostic pop
 static struct buffer_s argument = { .buffer = NULL, .size = 0 };
@@ -54,6 +59,7 @@ struct config_s config = {
 	.post_command = NULL,
 	.post = NULL,
 	.symlink = NULL,
+	.encrypt = NULL,
 	.scratchpad = { .buffer = NULL, .size = 0 }
 };
 
@@ -97,6 +103,9 @@ static void __attribute__((constructor)) initialize(void)
 	// set pattern to detect opening of configuration files
 	strcat(config_prefix, "/*");
 	config_pattern = config_prefix;
+
+	// test crypto functionality
+	assert(mbedtls_sha256_self_test(0) == 0);
 }
 
 static void __attribute__((destructor)) finalize(void)
@@ -317,6 +326,28 @@ static void process_entry(enum entry_type type)
 		*cur_link = new_link;
 		pthread_mutex_unlock(&config.lock);
 		break;
+
+	case ENTRY_ENCRYPT:
+		if (!attribute) break;
+		if (strncmp(attribute, "aes-256-acm", sizeof("aes-256-acm") - sizeof('\0')) != 0) break;
+		attribute += sizeof("aes-256-acm") - sizeof('\0');
+		struct encrypt_s *new_encrypt = malloc(sizeof(struct encrypt_s));
+		if (!new_encrypt) break;
+		new_encrypt->path.string = strdup(argument.buffer);
+		new_encrypt->path.length = strlen(argument.buffer);
+		// process the key material with SHA-256 to obtain an AES-256 key
+		mbedtls_sha256((unsigned char *)attribute, strlen(attribute), new_encrypt->key, 0);
+		new_encrypt->next = NULL;
+		pthread_mutex_lock(&config.lock);
+		// ordering by descending length causes O(n²) complexity, but ensures first match is most specific
+		struct encrypt_s **cur_encrypt;
+		for (cur_encrypt = &config.encrypt; *cur_encrypt; cur_encrypt = &(*cur_encrypt)->next) {
+			if ((*cur_encrypt)->path.length < new_encrypt->path.length) break;
+		}
+		new_encrypt->next = *cur_encrypt;
+		*cur_encrypt = new_encrypt;
+		pthread_mutex_unlock(&config.lock);
+		break;
 	}
 
 	argument.buffer[0] = '\0';
@@ -354,6 +385,14 @@ void config_reset(void)
 		free(save_symlink);
 	}
 	config.symlink = NULL;
+
+	for (struct encrypt_s *encrypt = config.encrypt; encrypt;) {
+		free(encrypt->path.string);
+		struct encrypt_s *save_encrypt = encrypt;
+		encrypt = encrypt->next;
+		free(save_encrypt);
+	}
+	config.encrypt = NULL;
 
 	config_expected = true;
 
