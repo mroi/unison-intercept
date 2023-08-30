@@ -107,7 +107,7 @@ static void symlink_iterate(const char *path, void (*f)(const struct string_s pa
 		for (struct symlink_s *link = config.symlink; link; link = link->next) {
 			size_t size = root.length + sizeof("/") + link->path.length;
 			scratchpad_alloc(&config.scratchpad, size);
-			sprintf(config.scratchpad.buffer, "%s/%s", root.string, link->path.string);
+			snprintf(config.scratchpad.buffer, config.scratchpad.size, "%s/%s", root.string, link->path.string);
 
 			if (strncmp(path, config.scratchpad.buffer, path_length) == 0) {
 				// path is a prefix of the link directive

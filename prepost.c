@@ -134,7 +134,7 @@ static void post_recurse(const char *path)
 			size_t size = strlen(path) + strlen(entry.d_name) + sizeof('/') + sizeof('\0');
 			scratchpad_alloc(&recursion, size);
 			assert(recursion.buffer);  // help the static analyzer
-			sprintf(recursion.buffer, "%s/%s", path, entry.d_name);
+			snprintf(recursion.buffer, recursion.size, "%s/%s", path, entry.d_name);
 			post_recurse(recursion.buffer);
 		}
 		free(recursion.buffer);
@@ -150,7 +150,7 @@ static void post_check(const char *path)
 			if (config.root[i].string) {
 				size_t size = config.root[i].length + sizeof("/") + post->pattern.length;
 				scratchpad_alloc(&config.scratchpad, size);
-				sprintf(config.scratchpad.buffer, "%s/%s", config.root[i].string, post->pattern.string);
+				snprintf(config.scratchpad.buffer, config.scratchpad.size, "%s/%s", config.root[i].string, post->pattern.string);
 				if (fnmatch(config.scratchpad.buffer, path, FNM_PATHNAME) == 0)
 					prepost_run(post->command, path);
 			}

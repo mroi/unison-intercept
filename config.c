@@ -78,13 +78,13 @@ static void __attribute__((constructor)) initialize(void)
 		alloc_size = strlen(home) + sizeof("/" UNISON_DIR1 "/*");
 		config_prefix = malloc(alloc_size);
 		if (!config_prefix) abort();
-		sprintf(config_prefix, "%s/" UNISON_DIR1, home);
+		snprintf(config_prefix, alloc_size, "%s/" UNISON_DIR1, home);
 		struct stat statbuf;
 		if (stat(config_prefix, &statbuf) != 0) {
 			alloc_size = strlen(home) + sizeof("/" UNISON_DIR2 "/*");
 			config_prefix = realloc(config_prefix, alloc_size);
 			if (!config_prefix) abort();
-			sprintf(config_prefix, "%s/" UNISON_DIR2, home);
+			snprintf(config_prefix, alloc_size, "%s/" UNISON_DIR2, home);
 		}
 	}
 
@@ -92,7 +92,7 @@ static void __attribute__((constructor)) initialize(void)
 	alloc_size = 2 * strlen(config_prefix) + sizeof(":/bin:" _PATH_DEFPATH);
 	config.search_path = malloc(alloc_size);
 	if (!config.search_path) abort();
-	sprintf(config.search_path, "%s:%s/bin:" _PATH_DEFPATH, config_prefix, config_prefix);
+	snprintf(config.search_path, alloc_size, "%s:%s/bin:" _PATH_DEFPATH, config_prefix, config_prefix);
 
 	// set pattern to detect opening of configuration files
 	strcat(config_prefix, "/*");

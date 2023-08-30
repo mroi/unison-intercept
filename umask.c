@@ -62,7 +62,7 @@ static mode_t mode_restrict(const char *path, mode_t mode)
 		home.length = strlen(home_env) + sizeof((char)'/');
 		home.string = malloc(home.length + sizeof((char)'\0'));
 		if (!home.string) abort();
-		sprintf(home.string, "%s/", home_env);
+		snprintf(home.string, home.length + sizeof((char)'\0'), "%s/", home_env);
 	}
 
 	bool is_below_home = strncmp(path, home.string, home.length) == 0;
