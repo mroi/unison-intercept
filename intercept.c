@@ -26,6 +26,7 @@
 #include "prepost.h"
 #include "symlink.h"
 #include "umask.h"
+#include "encrypt.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -56,6 +57,7 @@ enum intercept_id {
 	NONE,
 	NOCACHE,   // disable caching of file writes
 	CONFIG,    // process our own entries in Unison config files
+	ENCRYPT,   // presents encrypted file content
 	PREPOST,   // execute post scripts when files change
 	SYMLINK,   // create symlinks before traversing directories
 	UMASK,     // restricts umask in home directory
@@ -101,6 +103,7 @@ static void profile_intercept(id self, SEL command, void *arg)
 {
 	// the user changed to a different Unison profile, call reset functions
 	config_reset();
+	encrypt_reset();
 	prepost_reset();
 	symlink_reset();
 	previous_implementation(self, command, arg);
@@ -135,6 +138,13 @@ int open(const char *path, int flags, ...)
 			result = config_open(path, flags);
 		break;
 	case CONFIG:
+		context = ENCRYPT;
+		if (flags & O_CREAT)
+			result = encrypt_open(path, flags, va_arg(arg, unsigned));
+		else
+			result = encrypt_open(path, flags);
+		break;
+	case ENCRYPT:
 		context = PREPOST;
 		if (flags & O_CREAT)
 			result = prepost_open(path, flags, va_arg(arg, unsigned));
@@ -178,6 +188,10 @@ int close(int fd)
 		result = config_close(fd);
 		break;
 	case CONFIG:
+		context = ENCRYPT;
+		result = encrypt_close(fd);
+		break;
+	case ENCRYPT:
 	case PREPOST:
 	case SYMLINK:
 	case UMASK:
@@ -205,6 +219,7 @@ ssize_t read(int fd, void *buf, size_t bytes)
 		result = config_read(fd, buf, bytes);
 		break;
 	case CONFIG:
+	case ENCRYPT:
 	case PREPOST:
 	case SYMLINK:
 	case UMASK:
@@ -229,6 +244,10 @@ int stat(const char * restrict path, struct stat * restrict buf)
 	case NONE:
 	case NOCACHE:
 	case CONFIG:
+		context = ENCRYPT;
+		result = encrypt_stat(path, buf);
+		break;
+	case ENCRYPT:
 		context = PREPOST;
 		result = prepost_stat(path, buf);
 		break;
@@ -259,6 +278,10 @@ int lstat(const char * restrict path, struct stat * restrict buf)
 	case NONE:
 	case NOCACHE:
 	case CONFIG:
+		context = ENCRYPT;
+		result = encrypt_lstat(path, buf);
+		break;
+	case ENCRYPT:
 		context = PREPOST;
 		result = prepost_lstat(path, buf);
 		break;
@@ -289,6 +312,7 @@ int rename(const char *old, const char *new)
 	case NONE:
 	case NOCACHE:
 	case CONFIG:
+	case ENCRYPT:
 		context = PREPOST;
 		result = prepost_rename(old, new);
 		break;
@@ -316,6 +340,7 @@ int symlink(const char *target, const char *path)
 	case NONE:
 	case NOCACHE:
 	case CONFIG:
+	case ENCRYPT:
 	case PREPOST:
 	case SYMLINK:
 		context = UMASK;
@@ -343,6 +368,7 @@ int unlink(const char *path)
 	case NONE:
 	case NOCACHE:
 	case CONFIG:
+	case ENCRYPT:
 		context = PREPOST;
 		result = prepost_unlink(path);
 		break;
@@ -377,6 +403,7 @@ DIR *opendir(const char *path)
 	case NONE:
 	case NOCACHE:
 	case CONFIG:
+	case ENCRYPT:
 	case PREPOST:
 		context = SYMLINK;
 		result = symlink_opendir(path);
@@ -404,6 +431,7 @@ int closedir(DIR *dir)
 	case NONE:
 	case NOCACHE:
 	case CONFIG:
+	case ENCRYPT:
 	case PREPOST:
 		context = SYMLINK;
 		result = symlink_closedir(dir);
@@ -431,6 +459,7 @@ int mkdir(const char *path, mode_t mode)
 	case NONE:
 	case NOCACHE:
 	case CONFIG:
+	case ENCRYPT:
 	case PREPOST:
 	case SYMLINK:
 		context = UMASK;
@@ -458,6 +487,7 @@ int rmdir(const char *path)
 	case NONE:
 	case NOCACHE:
 	case CONFIG:
+	case ENCRYPT:
 		context = PREPOST;
 		result = prepost_rmdir(path);
 		break;

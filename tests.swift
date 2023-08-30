@@ -180,4 +180,22 @@ extension Tests {
 		XCTAssertEqual(try! files.attributesOfItem(atPath: homeFile.path)[.posixPermissions]! as! Int, 0o600)
 		XCTAssertEqual(try! files.attributesOfItem(atPath: nonHomeFile.path)[.posixPermissions]! as! Int, 0o644)
 	}
+
+	func testEncrypt() {
+		let testFile = Tests.root.appendingPathComponent("test")
+		try! "Test".write(toFile: testFile.path, atomically: false, encoding: .utf8)
+		loadProfile("""
+			root = \(Tests.root.path)
+			#encrypt = Path test -> aes-256-gcm:LJrNEGtg0a
+			""")
+
+		// reported file size should be larger
+		let size = testFile.withUnsafeFileSystemRepresentation {
+			let statBuffer = UnsafeMutablePointer<stat>.allocate(capacity: 1)
+			defer { statBuffer.deallocate() }
+			stat($0!, statBuffer)
+			return Int(statBuffer.pointee.st_size)
+		}
+		XCTAssertEqual(size, 16 + 8 + "Test".count + 16)
+	}
 }
