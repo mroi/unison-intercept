@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 55;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,9 +15,11 @@
 		4C0DE440202B631800599E41 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0DE43F202B631800599E41 /* CoreFoundation.framework */; };
 		4C12B0A9204D9CBD009DFC09 /* libobjc.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C12B0A8204D9CBD009DFC09 /* libobjc.tbd */; };
 		4C67DD7423151CCA00475874 /* umask.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C67DD7223151CCA00475874 /* umask.c */; };
+		4C97A3522A9F2F4100117582 /* encrypt.c in Sources */ = {isa = PBXBuildFile; fileRef = 4C97A3512A9F2F4100117582 /* encrypt.c */; };
 		4CA5AD7E22B6AB6E00CDC63B /* tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CB6F39722B6A4B500A00839 /* tests.swift */; };
 		4CB6F39A22B6A4B500A00839 /* libintercept.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C0DE428202B56AD00599E41 /* libintercept.dylib */; };
 		4CBC4D3C22CA9C16004FB73C /* symlink.c in Sources */ = {isa = PBXBuildFile; fileRef = 4CBC4D3A22CA9C16004FB73C /* symlink.c */; };
+		4CD4D68D2A9F82DA00AC3B95 /* libmbedcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CD4D68B2A9F810600AC3B95 /* libmbedcrypto.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,6 +29,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 4C0DE427202B56AD00599E41;
 			remoteInfo = intercept;
+		};
+		4CD4D6892A9F80DC00AC3B95 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4C0DE41E202B561400599E41 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4CD4D6852A9F800E00AC3B95;
+			remoteInfo = encrypt;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -46,12 +55,16 @@
 		4C2D270F2299C68800D78D42 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		4C67DD7123151CCA00475874 /* umask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = umask.h; sourceTree = "<group>"; };
 		4C67DD7223151CCA00475874 /* umask.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = umask.c; sourceTree = "<group>"; };
+		4C97A3502A9F2F4100117582 /* encrypt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = encrypt.h; sourceTree = "<group>"; };
+		4C97A3512A9F2F4100117582 /* encrypt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = encrypt.c; sourceTree = "<group>"; };
+		4CB325F12AA074BA00D59187 /* mbedtls */ = {isa = PBXFileReference; lastKnownFileType = folder; name = mbedtls; path = encrypt/include/mbedtls; sourceTree = "<group>"; };
 		4CB6F39522B6A4B500A00839 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CB6F39722B6A4B500A00839 /* tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tests.swift; sourceTree = "<group>"; };
 		4CBC4D3922CA9C16004FB73C /* symlink.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = symlink.h; sourceTree = "<group>"; };
 		4CBC4D3A22CA9C16004FB73C /* symlink.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = symlink.c; sourceTree = "<group>"; };
 		4CC7B4AA202D965D00120D99 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		4CC7B4AB202D965E00120D99 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
+		4CD4D68B2A9F810600AC3B95 /* libmbedcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedcrypto.a; path = encrypt/library/libmbedcrypto.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +75,7 @@
 				4C12B0A9204D9CBD009DFC09 /* libobjc.tbd in Frameworks */,
 				4C0DE440202B631800599E41 /* CoreFoundation.framework in Frameworks */,
 				4C0DE43E202B5E8F00599E41 /* SystemConfiguration.framework in Frameworks */,
+				4CD4D68D2A9F82DA00AC3B95 /* libmbedcrypto.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,6 +121,8 @@
 				4C0DE433202B5B9000599E41 /* nocache.c */,
 				4C0DE434202B5B9000599E41 /* config.h */,
 				4C0DE431202B5B9000599E41 /* config.c */,
+				4C97A3502A9F2F4100117582 /* encrypt.h */,
+				4C97A3512A9F2F4100117582 /* encrypt.c */,
 				4C0DE432202B5B9000599E41 /* prepost.h */,
 				4C0DE430202B5B9000599E41 /* prepost.c */,
 				4CBC4D3922CA9C16004FB73C /* symlink.h */,
@@ -120,6 +136,8 @@
 		4C0DE43C202B5E8F00599E41 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4CB325F12AA074BA00D59187 /* mbedtls */,
+				4CD4D68B2A9F810600AC3B95 /* libmbedcrypto.a */,
 				4C12B0A8204D9CBD009DFC09 /* libobjc.tbd */,
 				4C0DE43F202B631800599E41 /* CoreFoundation.framework */,
 				4C0DE43D202B5E8F00599E41 /* SystemConfiguration.framework */,
@@ -128,6 +146,23 @@
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		4CD4D6852A9F800E00AC3B95 /* encrypt */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = libmbedcrypto.a;
+			buildConfigurationList = 4CD4D6882A9F800E00AC3B95 /* Build configuration list for PBXLegacyTarget "encrypt" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = encrypt/library;
+			dependencies = (
+			);
+			name = encrypt;
+			passBuildSettingsInEnvironment = 1;
+			productName = encrypt;
+		};
+/* End PBXLegacyTarget section */
 
 /* Begin PBXNativeTarget section */
 		4C0DE427202B56AD00599E41 /* intercept */ = {
@@ -141,6 +176,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				4CD4D68A2A9F80DC00AC3B95 /* PBXTargetDependency */,
 			);
 			name = intercept;
 			productName = "unison-intercept";
@@ -180,10 +216,13 @@
 					4CB6F39422B6A4B500A00839 = {
 						CreatedOnToolsVersion = 10.2.1;
 					};
+					4CD4D6852A9F800E00AC3B95 = {
+						CreatedOnToolsVersion = 14.2;
+					};
 				};
 			};
 			buildConfigurationList = 4C0DE421202B561400599E41 /* Build configuration list for PBXProject "UnisonIntercept" */;
-			compatibilityVersion = "Xcode 13.0";
+			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -196,6 +235,7 @@
 			projectRoot = "";
 			targets = (
 				4C0DE427202B56AD00599E41 /* intercept */,
+				4CD4D6852A9F800E00AC3B95 /* encrypt */,
 				4CB6F39422B6A4B500A00839 /* Tests */,
 			);
 		};
@@ -250,6 +290,7 @@
 				4C0DE437202B5B9000599E41 /* config.c in Sources */,
 				4C67DD7423151CCA00475874 /* umask.c in Sources */,
 				4C0DE436202B5B9000599E41 /* prepost.c in Sources */,
+				4C97A3522A9F2F4100117582 /* encrypt.c in Sources */,
 				4CBC4D3C22CA9C16004FB73C /* symlink.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -269,6 +310,11 @@
 			isa = PBXTargetDependency;
 			target = 4C0DE427202B56AD00599E41 /* intercept */;
 			targetProxy = 4CB6F39B22B6A4B500A00839 /* PBXContainerItemProxy */;
+		};
+		4CD4D68A2A9F80DC00AC3B95 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4CD4D6852A9F800E00AC3B95 /* encrypt */;
+			targetProxy = 4CD4D6892A9F80DC00AC3B95 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -304,6 +350,7 @@
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				ONLY_ACTIVE_ARCH = YES;
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = (
 					"-Weverything",
@@ -344,6 +391,7 @@
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				ONLY_ACTIVE_ARCH = YES;
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = (
 					"-Weverything",
@@ -358,9 +406,11 @@
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
 				DYLIB_CURRENT_VERSION = 1319.0.0;
 				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/encrypt/include";
 				INSTALL_GROUP = admin;
 				INSTALL_PATH = "$(UNISON_PATH)/Contents/MacOS/";
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/encrypt/library";
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REEXPORTED_LIBRARY_NAMES = System;
 				STRIP_INSTALLED_PRODUCT = NO;
@@ -374,9 +424,11 @@
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
 				DYLIB_CURRENT_VERSION = 1319.0.0;
 				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/encrypt/include";
 				INSTALL_GROUP = admin;
 				INSTALL_PATH = "$(UNISON_PATH)/Contents/MacOS/";
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/encrypt/library";
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REEXPORTED_LIBRARY_NAMES = System;
 				STRIP_INSTALLED_PRODUCT = NO;
@@ -401,6 +453,18 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = tests.h;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		4CD4D6862A9F800E00AC3B95 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		4CD4D6872A9F800E00AC3B95 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
 			};
 			name = Release;
 		};
@@ -430,6 +494,15 @@
 			buildConfigurations = (
 				4CB6F39D22B6A4B500A00839 /* Debug */,
 				4CB6F39E22B6A4B500A00839 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4CD4D6882A9F800E00AC3B95 /* Build configuration list for PBXLegacyTarget "encrypt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4CD4D6862A9F800E00AC3B95 /* Debug */,
+				4CD4D6872A9F800E00AC3B95 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

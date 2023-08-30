@@ -1,0 +1,4 @@
+[submodule "mbedtls"]
+	path = encrypt
+	url = https://github.com/Mbed-TLS/mbedtls
+	branch = development

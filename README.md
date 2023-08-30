@@ -40,6 +40,11 @@ As Unison reads its configuration files, this intercept layer parses them and ex
 additional configuration options used by other intercepts. All additional options start with 
 `#` and therefore look like comments to the normal Unison parser.
 
+**encrypt**
+Files are encrypted after local reads and decrypted before local writes. This ensures that 
+Unison operates on encrypted data when transferring file content to servers. The encryption 
+key can be configured using `#encrypt = Path PATH -> aes-256-gcm:SECRET` directives.
+
 **prepost**  
 Runs pre and post processing commands. Global pre and post commands, which execute once 
 synchronization starts and completes, are configured as `#precmd = COMMAND` and
