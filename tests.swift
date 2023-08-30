@@ -97,18 +97,18 @@ extension Tests {
 			#symlink = Path aTp9W/HNyp -> CPYYlSAK3G
 			#symlink = Path Qz/UR -> IZMryE2y93
 			""")
-		XCTAssert(String(cString: config.root.0.string) == "/fcChXfYky")
-		XCTAssert(String(cString: config.root.1.string) == "/ZIopXJKWq")
-		XCTAssert(String(cString: config.pre_command) == "tIGEmizPts")
-		XCTAssert(String(cString: config.post_command) == "JgEPTRILIb")
-		XCTAssert(String(cString: config.post.pointee.pattern.string) == "FUHP/kwuwu")
-		XCTAssert(String(cString: config.post.pointee.command) == "3RXO7ZAC5w")
-		XCTAssert(String(cString: config.post.pointee.next.pointee.pattern.string) == "A/eiVQBcyU")
-		XCTAssert(String(cString: config.post.pointee.next.pointee.command) == "7RqAcYFY0d")
-		XCTAssert(String(cString: config.symlink.pointee.path.string) == "Qz/UR")
-		XCTAssert(String(cString: config.symlink.pointee.target) == "IZMryE2y93")
-		XCTAssert(String(cString: config.symlink.pointee.next.pointee.path.string) == "aTp9W/HNyp")
-		XCTAssert(String(cString: config.symlink.pointee.next.pointee.target) == "CPYYlSAK3G")
+		XCTAssertEqual(String(cString: config.root.0.string), "/fcChXfYky")
+		XCTAssertEqual(String(cString: config.root.1.string), "/ZIopXJKWq")
+		XCTAssertEqual(String(cString: config.pre_command), "tIGEmizPts")
+		XCTAssertEqual(String(cString: config.post_command), "JgEPTRILIb")
+		XCTAssertEqual(String(cString: config.post.pointee.pattern.string), "FUHP/kwuwu")
+		XCTAssertEqual(String(cString: config.post.pointee.command), "3RXO7ZAC5w")
+		XCTAssertEqual(String(cString: config.post.pointee.next.pointee.pattern.string), "A/eiVQBcyU")
+		XCTAssertEqual(String(cString: config.post.pointee.next.pointee.command), "7RqAcYFY0d")
+		XCTAssertEqual(String(cString: config.symlink.pointee.path.string), "Qz/UR")
+		XCTAssertEqual(String(cString: config.symlink.pointee.target), "IZMryE2y93")
+		XCTAssertEqual(String(cString: config.symlink.pointee.next.pointee.path.string), "aTp9W/HNyp")
+		XCTAssertEqual(String(cString: config.symlink.pointee.next.pointee.target), "CPYYlSAK3G")
 	}
 
 	func testPrePost() {
@@ -129,14 +129,14 @@ extension Tests {
 		try! files.setAttributes([.posixPermissions: S_IRWXU], ofItemAtPath: commandFile.path)
 		// create archive file to trigger pre command
 		touch(archiveFile)
-		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "1")
+		XCTAssertEqual(try! String(contentsOf: traceFile, encoding: .utf8), "1")
 		// trigger per-file post command
 		touch(triggerFile)
 		remove(triggerFile)
-		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "123")
+		XCTAssertEqual(try! String(contentsOf: traceFile, encoding: .utf8), "123")
 		// remove archive file to trigger global post command
 		remove(archiveFile)
-		XCTAssert(try! String(contentsOf: traceFile, encoding: .utf8) == "1234")
+		XCTAssertEqual(try! String(contentsOf: traceFile, encoding: .utf8), "1234")
 	}
 
 	func testSymlink() {
@@ -151,7 +151,7 @@ extension Tests {
 
 		// trigger creation of first level symlinks/directories
 		traverse(Tests.root)
-		XCTAssert(try! files.destinationOfSymbolicLink(atPath: symlink1.path) == "subdir")
+		XCTAssertEqual(try! files.destinationOfSymbolicLink(atPath: symlink1.path), "subdir")
 		XCTAssert(files.fileExists(atPath: subdir.path))
 		// trigger creation of second level symlinks/directories
 		inspect(subsubdir)
@@ -159,7 +159,7 @@ extension Tests {
 		XCTAssertFalse(files.fileExists(atPath: symlink2.path))
 		// trigger creation of third level symlinks/directories
 		traverse(subsubdir)
-		XCTAssert(try! files.destinationOfSymbolicLink(atPath: symlink1.path) == "subdir")
+		XCTAssertEqual(try! files.destinationOfSymbolicLink(atPath: symlink1.path), "subdir")
 		XCTAssertThrowsError(try files.destinationOfSymbolicLink(atPath: symlink2.path))
 	}
 }
