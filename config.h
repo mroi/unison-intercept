@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <limits.h>
 #include <pthread.h>
 #include <sys/types.h>
 
@@ -26,6 +27,11 @@ extern struct config_s {
 		char *target;
 		struct symlink_s *next;
 	} *symlink;
+	struct encrypt_s {
+		struct string_s path;
+		unsigned char key[256 / CHAR_BIT];
+		struct encrypt_s *next;
+	} *encrypt;
 	struct buffer_s {
 		char *buffer;
 		size_t size;

@@ -97,6 +97,8 @@ extension Tests {
 			#post    = Path A/eiVQBcyU -> 7RqAcYFY0d
 			#symlink = Path aTp9W/HNyp -> CPYYlSAK3G
 			#symlink = Path Qz/UR -> IZMryE2y93
+			#encrypt = Path gsa3M -> aes-256-gcm:KIETRjaSzO
+			#encrypt = Path YkLyVNQUdX -> aes-256-gcm:47klFFHh51
 			""")
 		XCTAssertEqual(String(cString: config.root.0.string), "/fcChXfYky")
 		XCTAssertEqual(String(cString: config.root.1.string), "/ZIopXJKWq")
@@ -110,6 +112,10 @@ extension Tests {
 		XCTAssertEqual(String(cString: config.symlink.pointee.target), "IZMryE2y93")
 		XCTAssertEqual(String(cString: config.symlink.pointee.next.pointee.path.string), "aTp9W/HNyp")
 		XCTAssertEqual(String(cString: config.symlink.pointee.next.pointee.target), "CPYYlSAK3G")
+		XCTAssertEqual(String(cString: config.encrypt.pointee.path.string), "YkLyVNQUdX")
+		XCTAssertEqual(String(cString: config.encrypt.pointee.next.pointee.path.string), "gsa3M")
+		XCTAssertEqual(config.encrypt.pointee.key.0, 193)
+		XCTAssertEqual(config.encrypt.pointee.next.pointee.key.0, 215)
 	}
 
 	func testPrePost() {
@@ -173,5 +179,39 @@ extension Tests {
 		touch(nonHomeFile)
 		XCTAssertEqual(try! files.attributesOfItem(atPath: homeFile.path)[.posixPermissions]! as! Int, 0o600)
 		XCTAssertEqual(try! files.attributesOfItem(atPath: nonHomeFile.path)[.posixPermissions]! as! Int, 0o644)
+	}
+
+	func testEncrypt() {
+		let testFile = Tests.root.appendingPathComponent("test")
+		try! "Test".write(toFile: testFile.path, atomically: false, encoding: .utf8)
+		loadProfile("""
+			root = \(Tests.root.path)
+			#encrypt = Path test -> aes-256-gcm:LJrNEGtg0a
+			""")
+
+		// trigger begin of unison sync to overcome non-encryption of pre-sync reads
+		let archiveFile = Tests.root.appendingPathComponent(".unison/ar00000000000000000000000000000000")
+		touch(archiveFile)
+
+		// reported file size should be larger
+		let size = testFile.withUnsafeFileSystemRepresentation {
+			let statBuffer = UnsafeMutablePointer<stat>.allocate(capacity: 1)
+			defer { statBuffer.deallocate() }
+			stat($0!, statBuffer)
+			return Int(statBuffer.pointee.st_size)
+		}
+		XCTAssertEqual(size, 16 + 8 + "Test".count + 16)
+
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: size, alignment: 1)
+		// use POSIX open()/read() so the intercept layer encrypts the file
+		let readFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.readOnly.rawValue)
+		XCTAssert(read(readFd, buffer.baseAddress, buffer.count) == size)
+		close(readFd)
+		// use POSIX open()/write() to recreate from the encrypted version
+		let writeFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.writeOnly.rawValue | O_TRUNC)
+		XCTAssert(write(writeFd, buffer.baseAddress, buffer.count) == size)
+		close(writeFd)
+		buffer.deallocate()
+		XCTAssertEqual(try! String(contentsOf: testFile), "Test")
 	}
 }
