@@ -151,7 +151,7 @@ static void post_check(const char *path)
 				size_t size = config.root[i].length + sizeof("/") + post->pattern.length;
 				buffer_alloc(&config.scratchpad, size);
 				snprintf(config.scratchpad.buffer, config.scratchpad.size, "%s/%s", config.root[i].string, post->pattern.string);
-				if (fnmatch(config.scratchpad.buffer, path, FNM_PATHNAME) == 0)
+				if (fnmatch(config.scratchpad.buffer, path, FNM_PATHNAME | FNM_PERIOD) == 0)
 					prepost_run(post->command, path);
 			}
 		}
