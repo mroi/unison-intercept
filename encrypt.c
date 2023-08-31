@@ -34,7 +34,7 @@ static struct filemap_s {
 	int fd;
 	enum { READ, WRITE, CLOSE } state;
 	size_t position;
-	unsigned char key[256 / CHAR_BIT];
+	mbedtls_gcm_context gcm;
 	struct file_header_s header;
 	struct buffer_s content_buffer;
 	struct file_trailer_s trailer;
@@ -76,7 +76,6 @@ int encrypt_open(const char *path, int flags, ...)
 		if (!file) {
 			file = malloc(sizeof(struct filemap_s));
 			file->path = strdup(path);
-			memcpy(file->key, key, sizeof(file->key));
 			file->header.trailer_start = 0;
 			file->content_buffer.size = 0;
 			file->content_buffer.buffer = NULL;
@@ -99,6 +98,10 @@ int encrypt_open(const char *path, int flags, ...)
 		file->fd = result;
 		file->position = 0;
 
+		mbedtls_gcm_init(&file->gcm);
+		int gcm_result = mbedtls_gcm_setkey(&file->gcm, MBEDTLS_CIPHER_ID_AES, key, 256);
+		assert(gcm_result == 0);
+
 		pthread_mutex_unlock(&filemap_lock);
 	}
 
@@ -116,6 +119,7 @@ int encrypt_close(int fd)
 		file->fd = -1;
 		file->state = CLOSE;
 		file->position = 0;
+		mbedtls_gcm_free(&file->gcm);
 	}
 	pthread_mutex_unlock(&filemap_lock);
 
@@ -131,7 +135,7 @@ ssize_t encrypt_read(int fd, void *buf, size_t bytes)
 
 	if (file) {
 		assert(file->state == READ);
-		char *target = buf;
+		unsigned char *target = buf;
 
 		if (bytes > 0 && file->position == 0 && file->header.trailer_start == 0) {
 			// initialize the file header
@@ -154,12 +158,19 @@ ssize_t encrypt_read(int fd, void *buf, size_t bytes)
 			file->position += to_emit;
 		}
 
+		if (bytes > 0 && file->position == sizeof(struct file_header_s)) {
+			// start the crypto context
+			int gcm_result = mbedtls_gcm_starts(&file->gcm, MBEDTLS_GCM_ENCRYPT, file->header.iv, sizeof(file->header.iv));
+			assert(gcm_result == 0);
+		}
+
 		if (bytes > 0 && file->position < file->header.trailer_start) {
 			// emit encrypted file content to the caller
 			size_t to_emit = file->header.trailer_start - file->position;
 			if (to_emit > bytes) to_emit = bytes;
 			buffer_alloc(&file->content_buffer, to_emit);
 
+			// read file data
 			size_t to_read = to_emit;
 			char *buffer = file->content_buffer.buffer;
 			while (to_read > 0) {
@@ -172,21 +183,26 @@ ssize_t encrypt_read(int fd, void *buf, size_t bytes)
 			}
 			to_emit -= to_read;
 
-			const char *source = file->content_buffer.buffer;
-			// FIXME: actually encrypt
-			for (size_t byte = 0; byte < to_emit; byte++) {
-				target[byte] = source[byte] ^ 0x20;
-			}
-			target += to_emit;
-			result += to_emit;
-			bytes -= to_emit;
+			// perform encryption
+			const unsigned char *source = (const unsigned char *)file->content_buffer.buffer;
+			size_t gcm_size;
+			int gcm_result = mbedtls_gcm_update(&file->gcm, source, to_emit, target, bytes, &gcm_size);
+			assert(gcm_result == 0);
+
+			target += gcm_size;
+			result += gcm_size;
+			bytes -= gcm_size;
 			file->position += to_emit;
 		}
 
 		if (bytes > 0 && file->position == file->header.trailer_start) {
 			// generate authentication tag
-			// FIXME: generate from actual crypto
-			memset(file->trailer.auth_tag, 0x12, sizeof(file->trailer.auth_tag));
+			size_t gcm_size;
+			int gcm_result = mbedtls_gcm_finish(&file->gcm, target, bytes, &gcm_size, file->trailer.auth_tag, sizeof(file->trailer.auth_tag));
+			assert(gcm_result == 0);
+			target += gcm_size;
+			result += gcm_size;
+			bytes -= gcm_size;
 		}
 
 		if (bytes > 0 && file->position >= file->header.trailer_start) {
@@ -218,7 +234,7 @@ ssize_t encrypt_write(int fd, const void *buf, size_t bytes)
 
 	if (file) {
 		assert(file->state == WRITE);
-		const char *source = buf;
+		const unsigned char *source = buf;
 
 		if (bytes > 0 && file->position < sizeof(struct file_header_s)) {
 			// first consume the header from the caller
@@ -232,18 +248,27 @@ ssize_t encrypt_write(int fd, const void *buf, size_t bytes)
 			file->position += to_consume;
 		}
 
+		if (bytes > 0 && file->position == sizeof(struct file_header_s)) {
+			// start the crypto context
+			int gcm_result = mbedtls_gcm_starts(&file->gcm, MBEDTLS_GCM_DECRYPT, file->header.iv, sizeof(file->header.iv));
+			assert(gcm_result == 0);
+		}
+
 		if (bytes > 0 && file->position < file->header.trailer_start) {
 			// consume and decrypt file content from the caller
 			size_t to_consume = file->header.trailer_start - file->position;
 			if (to_consume > bytes) to_consume = bytes;
-			buffer_alloc(&file->content_buffer, to_consume);
-			char *target = file->content_buffer.buffer;
-			// FIXME: actually decrypt
-			for (size_t byte = 0; byte < to_consume; byte++) {
-				target[byte] = source[byte] ^ 0x20;
-			}
+			size_t enlarged = to_consume + 15;  // mbedtls needs a rounded-up output buffer
+			buffer_alloc(&file->content_buffer, enlarged);
 
-			size_t to_write = to_consume;
+			// perform decryption
+			unsigned char *target = (unsigned char *)file->content_buffer.buffer;
+			size_t gcm_size;
+			int gcm_result = mbedtls_gcm_update(&file->gcm, source, to_consume, target, enlarged, &gcm_size);
+			assert(gcm_result == 0);
+
+			// write file data
+			size_t to_write = gcm_size;
 			const char *buffer = file->content_buffer.buffer;
 			while (to_write > 0) {
 				ssize_t write_result = write(fd, buffer, to_write);
@@ -273,8 +298,26 @@ ssize_t encrypt_write(int fd, const void *buf, size_t bytes)
 
 		if (file->position == file->header.trailer_start + sizeof(struct file_trailer_s)) {
 			// verify authentication tag
-			// FIXME: generate from actual crypto
-			const char generated[128 / CHAR_BIT] = { 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12 };
+			buffer_alloc(&file->content_buffer, 15);
+			unsigned char *target = (unsigned char *)file->content_buffer.buffer;
+			unsigned char generated[128 / CHAR_BIT];
+			size_t gcm_size;
+			int gcm_result = mbedtls_gcm_finish(&file->gcm, target, bytes, &gcm_size, generated, sizeof(generated));
+			assert(gcm_result == 0);
+
+			if (gcm_size > 0) {
+				// write file data
+				size_t to_write = gcm_size;
+				const char *buffer = file->content_buffer.buffer;
+				while (to_write > 0) {
+					ssize_t write_result = write(fd, buffer, to_write);
+					if (write_result < 0 && errno == EINTR) continue;
+					if (write_result < 0) return write_result;
+					buffer += write_result;
+					to_write -= (size_t)write_result;
+				}
+			}
+
 			int diff = memcmp(file->trailer.auth_tag, generated, sizeof(struct file_trailer_s));
 			if (diff != 0) return EIO;
 		}
@@ -361,6 +404,7 @@ void encrypt_reset(void)
 	struct filemap_s *next;
 	for (struct filemap_s *file = filemap; file; file = next) {
 		next = file->next;
+		if (file->state != CLOSE) mbedtls_gcm_free(&file->gcm);
 		free(file->path);
 		free(file->content_buffer.buffer);
 		free(file);
