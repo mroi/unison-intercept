@@ -189,6 +189,10 @@ extension Tests {
 			#encrypt = Path test -> aes-256-gcm:LJrNEGtg0a
 			""")
 
+		// trigger begin of unison sync to overcome non-encryption of pre-sync reads
+		let archiveFile = Tests.root.appendingPathComponent(".unison/ar00000000000000000000000000000000")
+		touch(archiveFile)
+
 		// reported file size should be larger
 		let size = testFile.withUnsafeFileSystemRepresentation {
 			let statBuffer = UnsafeMutablePointer<stat>.allocate(capacity: 1)

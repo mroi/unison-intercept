@@ -17,6 +17,12 @@
 #include "mbedtls/gcm.h"
 
 
+// never encrypt Unison’s internal files
+static bool sync_started = false;
+#define INTERNAL_PATTERN "??[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]"
+#define INTERNAL_PATTERN1 "*/.unison/" INTERNAL_PATTERN
+#define INTERNAL_PATTERN2 "*/Library/Application Support/Unison/" INTERNAL_PATTERN
+
 // we add this to the beginning of files
 struct file_header_s {
 	unsigned char iv[128 / CHAR_BIT];
@@ -359,6 +365,13 @@ int encrypt_lstat(const char * restrict path, struct stat * restrict buf)
 
 static bool encrypt_search_key(const char *path, unsigned char key_out[256 / CHAR_BIT])
 {
+	// never encrypt Unison’s internal files
+	if (fnmatch(INTERNAL_PATTERN1, path, 0) == 0 || fnmatch(INTERNAL_PATTERN2, path, 0) == 0) {
+		sync_started = true;
+		return false;
+	}
+	if (!sync_started) return false;
+
 	bool found = false;
 
 	pthread_mutex_lock(&config.lock);
@@ -412,4 +425,6 @@ void encrypt_reset(void)
 	filemap = NULL;
 
 	pthread_mutex_unlock(&filemap_lock);
+
+	sync_started = false;
 }
