@@ -11,6 +11,10 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#ifndef __APPLE__
+#define strlcpy strncpy
+#endif
+
 #include "config.h"
 #include "mbedtls/sha256.h"
 
@@ -78,9 +82,10 @@ static void __attribute__((constructor)) initialize(void)
 		alloc_size = strlen(envvar) + sizeof("/*");
 		config_prefix = malloc(alloc_size);
 		if (!config_prefix) abort();
-		strcpy(config_prefix, envvar);
+		strlcpy(config_prefix, envvar, alloc_size);
 	} else {
 		const char *home = getenv("HOME");
+		assert(home);
 		alloc_size = strlen(home) + sizeof("/" UNISON_DIR1 "/*");
 		config_prefix = malloc(alloc_size);
 		if (!config_prefix) abort();

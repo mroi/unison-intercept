@@ -14,7 +14,11 @@
 
 #include "config.h"
 #include "encrypt.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
 #include "mbedtls/gcm.h"
+#pragma clang diagnostic push
 
 
 // never encrypt Unison’s internal files
@@ -145,7 +149,13 @@ ssize_t encrypt_read(int fd, void *buf, size_t bytes)
 
 		if (bytes > 0 && file->position == 0 && file->header.trailer_start == 0) {
 			// initialize the file header
+#ifdef __APPLE__
 			arc4random_buf(file->header.iv, sizeof(file->header.iv));
+#else
+			// Glibc 2.36 will gain arc4random_buf(), replace until widely available
+			int entropy_result = getentropy(file->header.iv, sizeof(file->header.iv));
+			assert(entropy_result == 0);
+#endif
 			struct stat stat_buf;
 			int stat_result = fstat(file->fd, &stat_buf);
 			assert(stat_result == 0);

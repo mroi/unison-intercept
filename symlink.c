@@ -7,6 +7,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <assert.h>
 
 #include "config.h"
 #include "symlink.h"
@@ -52,6 +53,7 @@ DIR *symlink_opendir(const char *path)
 	// remember mapping from dir to path for cleanup
 	pthread_mutex_lock(&dirmap_lock);
 	struct dirmap_s *entry = malloc(sizeof(struct dirmap_s));
+	assert(entry);
 	entry->dir = dir;
 	entry->path = strdup(path);
 	entry->next = dirmap;
@@ -95,6 +97,7 @@ static void symlink_iterate(const char *path, void (*f)(const struct string_s pa
 	// create symlinks in the root below HOME
 	struct string_s root = { .string = NULL, .length = 0 };
 	const char *home = getenv("HOME");
+	assert(home);
 	const size_t home_length = strlen(home);
 	if (config.root[0].string && strncmp(config.root[0].string, home, home_length) == 0)
 		root = config.root[0];

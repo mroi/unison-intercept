@@ -6,6 +6,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <assert.h>
 
 #include "config.h"
 #include "umask.h"
@@ -59,6 +60,7 @@ static mode_t mode_restrict(const char *path, mode_t mode)
 	static struct string_s home = { .string = NULL, .length = 0 };
 	if (!home.string) {
 		char *home_env = getenv("HOME");
+		assert(home_env);
 		home.length = strlen(home_env) + sizeof((char)'/');
 		home.string = malloc(home.length + sizeof((char)'\0'));
 		if (!home.string) abort();
