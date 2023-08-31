@@ -209,6 +209,84 @@ ssize_t encrypt_read(int fd, void *buf, size_t bytes)
 	return result;
 }
 
+ssize_t encrypt_write(int fd, const void *buf, size_t bytes)
+{
+	ssize_t result = 0;
+
+	pthread_mutex_lock(&filemap_lock);
+	struct filemap_s *file = file_from_fd(fd);
+
+	if (file) {
+		assert(file->state == WRITE);
+		const char *source = buf;
+
+		if (bytes > 0 && file->position < sizeof(struct file_header_s)) {
+			// first consume the header from the caller
+			size_t to_consume = sizeof(struct file_header_s) - file->position;
+			if (to_consume > bytes) to_consume = bytes;
+			char *target = (char *)&file->header + file->position;
+			memcpy(target, source, to_consume);
+			source += to_consume;
+			result += to_consume;
+			bytes -= to_consume;
+			file->position += to_consume;
+		}
+
+		if (bytes > 0 && file->position < file->header.trailer_start) {
+			// consume and decrypt file content from the caller
+			size_t to_consume = file->header.trailer_start - file->position;
+			if (to_consume > bytes) to_consume = bytes;
+			buffer_alloc(&file->content_buffer, to_consume);
+			char *target = file->content_buffer.buffer;
+			// FIXME: actually decrypt
+			for (size_t byte = 0; byte < to_consume; byte++) {
+				target[byte] = source[byte] ^ 0x20;
+			}
+
+			size_t to_write = to_consume;
+			const char *buffer = file->content_buffer.buffer;
+			while (to_write > 0) {
+				ssize_t write_result = write(fd, buffer, to_write);
+				if (write_result < 0 && errno == EINTR) continue;
+				if (write_result < 0) return write_result;
+				buffer += write_result;
+				to_write -= (size_t)write_result;
+			}
+
+			source += to_consume;
+			result += to_consume;
+			bytes -= to_consume;
+			file->position += to_consume;
+		}
+
+		if (bytes > 0 && file->position >= file->header.trailer_start) {
+			// lastly consume the file trailer from the caller
+			size_t to_consume = sizeof(struct file_trailer_s);
+			to_consume -= file->position - file->header.trailer_start;
+			if (to_consume > bytes) to_consume = bytes;
+			char *target = (char *)&file->trailer;
+			target += file->position - file->header.trailer_start;
+			memcpy(target, source, to_consume);
+			result += to_consume;
+			file->position += to_consume;
+		}
+
+		if (file->position == file->header.trailer_start + sizeof(struct file_trailer_s)) {
+			// verify authentication tag
+			// FIXME: generate from actual crypto
+			const char generated[128 / CHAR_BIT] = { 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12 };
+			int diff = memcmp(file->trailer.auth_tag, generated, sizeof(struct file_trailer_s));
+			if (diff != 0) return EIO;
+		}
+
+	} else {
+		result = write(fd, buf, bytes);
+	}
+
+	pthread_mutex_unlock(&filemap_lock);
+	return result;
+}
+
 int encrypt_stat(const char * restrict path, struct stat * restrict buf)
 {
 	int result = stat(path, buf);

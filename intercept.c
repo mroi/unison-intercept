@@ -237,6 +237,34 @@ ssize_t read(int fd, void *buf, size_t bytes)
 	return result;
 }
 
+ssize_t write(int fd, const void *buf, size_t bytes)
+{
+	ORIGINAL_SYMBOL(write, (int fd, const void *buf, size_t bytes))
+	ssize_t result = 0;
+	enum intercept_id saved_context = context;
+
+	switch (context) {
+	case NONE:
+	case NOCACHE:
+	case CONFIG:
+		context = ENCRYPT;
+		result = encrypt_write(fd, buf, bytes);
+		break;
+	case ENCRYPT:
+	case PREPOST:
+	case SYMLINK:
+	case UMASK:
+		context = ORIGINAL;
+		// FALLTHROUGH
+	case ORIGINAL:
+		result = original_write(fd, buf, bytes);
+		break;
+	}
+
+	context = saved_context;
+	return result;
+}
+
 int stat(const char * restrict path, struct stat * restrict buf)
 {
 	ORIGINAL_SYMBOL(stat, (const char * restrict path, struct stat * restrict buf))

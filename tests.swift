@@ -203,7 +203,11 @@ extension Tests {
 		let readFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.readOnly.rawValue)
 		XCTAssert(read(readFd, buffer.baseAddress, buffer.count) == size)
 		close(readFd)
-		// TODO: write back and compare
+		// use POSIX open()/write() to recreate from the encrypted version
+		let writeFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.writeOnly.rawValue | O_TRUNC)
+		XCTAssert(write(writeFd, buffer.baseAddress, buffer.count) == size)
+		close(writeFd)
 		buffer.deallocate()
+		XCTAssertEqual(try! String(contentsOf: testFile), "Test")
 	}
 }
