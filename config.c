@@ -139,7 +139,7 @@ int config_open(const char *path, int flags, ...)
 					parse[i].seen = 0;
 					config_parse(&parse[i], '\n');
 				}
-				scratchpad_alloc(&argument, 1);
+				buffer_alloc(&argument, 1);
 				argument.buffer[0] = '\0';
 			}
 		}
@@ -197,7 +197,7 @@ static void config_parse(struct parse_s * restrict parser, char character)
 	case '.':
 		if (character != '\n') {
 			size_t length = strlen(argument.buffer);
-			scratchpad_alloc(&argument, length + 1);
+			buffer_alloc(&argument, length + 1);
 			argument.buffer[length + 0] = character;
 			argument.buffer[length + 1] = '\0';
 			parser->seen++;

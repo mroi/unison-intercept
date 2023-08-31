@@ -32,13 +32,13 @@ extern struct config_s {
 	} scratchpad;
 } config;
 
-static inline void scratchpad_alloc(struct buffer_s * restrict scratchpad, size_t size)
+static inline void buffer_alloc(struct buffer_s * restrict buffer, size_t size)
 {
-	if (scratchpad->size < size) {
+	if (buffer->size < size) {
 		size = (size + 1024) & ~1023U;
-		scratchpad->buffer = realloc(scratchpad->buffer, size);
-		assert(scratchpad->buffer);
-		scratchpad->size = size;
+		buffer->buffer = realloc(buffer->buffer, size);
+		assert(buffer->buffer);
+		buffer->size = size;
 	}
 }
 

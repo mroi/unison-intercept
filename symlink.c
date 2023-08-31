@@ -106,7 +106,7 @@ static void symlink_iterate(const char *path, void (*f)(const struct string_s pa
 	if (root.string) {
 		for (struct symlink_s *link = config.symlink; link; link = link->next) {
 			size_t size = root.length + sizeof("/") + link->path.length;
-			scratchpad_alloc(&config.scratchpad, size);
+			buffer_alloc(&config.scratchpad, size);
 			snprintf(config.scratchpad.buffer, config.scratchpad.size, "%s/%s", root.string, link->path.string);
 
 			if (strncmp(path, config.scratchpad.buffer, path_length) == 0) {
