@@ -93,15 +93,13 @@ static void symlink_iterate(const char *path, void (*f)(const struct string_s pa
 	pthread_mutex_lock(&config.lock);
 
 	// create symlinks in the root below HOME
-	static struct string_s root = { .string = NULL, .length = 0 };
-	if (!root.string) {
-		const char *home = getenv("HOME");
-		const size_t home_length = strlen(home);
-		if (config.root[0].string && strncmp(config.root[0].string, home, home_length) == 0)
-			root = config.root[0];
-		else if (config.root[1].string && strncmp(config.root[1].string, home, home_length) == 0)
-			root = config.root[1];
-	}
+	struct string_s root = { .string = NULL, .length = 0 };
+	const char *home = getenv("HOME");
+	const size_t home_length = strlen(home);
+	if (config.root[0].string && strncmp(config.root[0].string, home, home_length) == 0)
+		root = config.root[0];
+	else if (config.root[1].string && strncmp(config.root[1].string, home, home_length) == 0)
+		root = config.root[1];
 
 	if (root.string) {
 		for (struct symlink_s *link = config.symlink; link; link = link->next) {
