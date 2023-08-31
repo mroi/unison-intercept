@@ -197,5 +197,13 @@ extension Tests {
 			return Int(statBuffer.pointee.st_size)
 		}
 		XCTAssertEqual(size, 16 + 8 + "Test".count + 16)
+
+		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: size, alignment: 1)
+		// use POSIX open()/read() so the intercept layer encrypts the file
+		let readFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.readOnly.rawValue)
+		XCTAssert(read(readFd, buffer.baseAddress, buffer.count) == size)
+		close(readFd)
+		// TODO: write back and compare
+		buffer.deallocate()
 	}
 }

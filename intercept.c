@@ -219,6 +219,9 @@ ssize_t read(int fd, void *buf, size_t bytes)
 		result = config_read(fd, buf, bytes);
 		break;
 	case CONFIG:
+		context = ENCRYPT;
+		result = encrypt_read(fd, buf, bytes);
+		break;
 	case ENCRYPT:
 	case PREPOST:
 	case SYMLINK:
