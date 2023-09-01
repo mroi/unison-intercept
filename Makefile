@@ -16,11 +16,11 @@ endif
 
 .PHONY: all install clean
 
-all: $(LIB)
+all: encrypt/.git $(LIB)
 install: $(TGT)
 
 clean:
-	rm -f $(LIB) $(SBX) $(OBJ)
+	rm -f $(LIB) $(OBJ)
 
 $(LIB): $(OBJ) $(AUX)
 	$(CC) -shared -o $@ $^ -ldl
