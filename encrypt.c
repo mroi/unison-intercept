@@ -34,6 +34,10 @@ struct file_header_s {
 	size_t trailer_start;
 };
 
+#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+#error storing a size_t in the encrypted file format assumes little endian processors
+#endif
+
 // we add this to the end of files
 struct file_trailer_s {
 	unsigned char auth_tag[128 / CHAR_BIT];
