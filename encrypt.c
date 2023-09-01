@@ -18,6 +18,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wpadded"
 #include "mbedtls/gcm.h"
+#include "mbedtls/md.h"
 #pragma clang diagnostic push
 
 
@@ -29,7 +30,7 @@ static bool sync_started = false;
 
 // we add this to the beginning of files
 struct file_header_s {
-	unsigned char iv[128 / CHAR_BIT];
+	unsigned char iv[256 / CHAR_BIT];
 	size_t trailer_start;
 };
 
@@ -40,10 +41,10 @@ struct file_trailer_s {
 
 static pthread_mutex_t filemap_lock = PTHREAD_MUTEX_INITIALIZER;
 static struct filemap_s {
-	char *path;
 	int fd;
-	enum { READ, WRITE, CLOSE } state;
+	enum { READ, WRITE } state;
 	size_t position;
+	unsigned char key[256 / CHAR_BIT];
 	mbedtls_gcm_context gcm;
 	struct file_header_s header;
 	struct buffer_s content_buffer;
@@ -52,8 +53,8 @@ static struct filemap_s {
 } *filemap = NULL;
 
 static bool encrypt_search_key(const char *path, unsigned char key_out[256 / CHAR_BIT]);
-static struct filemap_s *file_from_path(const char *path);
 static struct filemap_s *file_from_fd(int fd);
+static ssize_t generate_iv_from_hmac(int fd, size_t length, unsigned char key[256 / CHAR_BIT], unsigned char iv_out[256 / CHAR_BIT]);
 
 
 static void __attribute__((constructor)) initialize(void)
@@ -81,20 +82,9 @@ int encrypt_open(const char *path, int flags, ...)
 	unsigned char key[256 / CHAR_BIT];
 	if (encrypt_search_key(path, key)) {
 		pthread_mutex_lock(&filemap_lock);
-		struct filemap_s *file = file_from_path(path);
 
-		if (!file) {
-			file = malloc(sizeof(struct filemap_s));
-			file->path = strdup(path);
-			file->header.trailer_start = 0;
-			file->content_buffer.size = 0;
-			file->content_buffer.buffer = NULL;
-			file->next = filemap;
-			filemap = file;
-		} else {
-			assert(file->state == CLOSE);
-		}
-
+		struct filemap_s *file = malloc(sizeof(struct filemap_s));
+		assert(file);
 		switch (flags & (O_RDONLY | O_WRONLY | O_RDWR)) {
 		case O_RDONLY:
 			file->state = READ;
@@ -108,9 +98,15 @@ int encrypt_open(const char *path, int flags, ...)
 		file->fd = result;
 		file->position = 0;
 
+		memcpy(file->key, key, sizeof(key));
 		mbedtls_gcm_init(&file->gcm);
 		int gcm_result = mbedtls_gcm_setkey(&file->gcm, MBEDTLS_CIPHER_ID_AES, key, 256);
 		assert(gcm_result == 0);
+
+		file->content_buffer.size = 0;
+		file->content_buffer.buffer = NULL;
+		file->next = filemap;
+		filemap = file;
 
 		pthread_mutex_unlock(&filemap_lock);
 	}
@@ -124,14 +120,19 @@ int encrypt_close(int fd)
 	int result = close(fd);
 
 	pthread_mutex_lock(&filemap_lock);
-	struct filemap_s *file = file_from_fd(fd);
-	if (file) {
-		file->fd = -1;
-		file->state = CLOSE;
-		file->position = 0;
-		mbedtls_gcm_free(&file->gcm);
+	struct filemap_s *file, **prev = &filemap;
+	for (file = filemap; file; file = file->next) {
+		if (file->fd == fd) break;
+		prev = &file->next;
 	}
+	if (file) *prev = file->next;
 	pthread_mutex_unlock(&filemap_lock);
+
+	if (file) {
+		mbedtls_gcm_free(&file->gcm);
+		free(file->content_buffer.buffer);
+		free(file);
+	}
 
 	return result;
 }
@@ -147,19 +148,15 @@ ssize_t encrypt_read(int fd, void *buf, size_t bytes)
 		assert(file->state == READ);
 		unsigned char *target = buf;
 
-		if (bytes > 0 && file->position == 0 && file->header.trailer_start == 0) {
+		if (bytes > 0 && file->position == 0) {
 			// initialize the file header
-#ifdef __APPLE__
-			arc4random_buf(file->header.iv, sizeof(file->header.iv));
-#else
-			// Glibc 2.36 will gain arc4random_buf(), replace until widely available
-			int entropy_result = getentropy(file->header.iv, sizeof(file->header.iv));
-			assert(entropy_result == 0);
-#endif
 			struct stat stat_buf;
 			int stat_result = fstat(file->fd, &stat_buf);
 			assert(stat_result == 0);
-			file->header.trailer_start = sizeof(struct file_header_s) + (size_t)stat_buf.st_size;
+			size_t file_length = (size_t)stat_buf.st_size;
+			ssize_t iv_result = generate_iv_from_hmac(fd, file_length, file->key, file->header.iv);
+			assert(iv_result == 0);
+			file->header.trailer_start = sizeof(struct file_header_s) + file_length;
 		}
 
 		if (bytes > 0 && file->position < sizeof(struct file_header_s)) {
@@ -410,15 +407,6 @@ static bool encrypt_search_key(const char *path, unsigned char key_out[256 / CHA
 	return found;
 }
 
-static struct filemap_s *file_from_path(const char *path)
-{
-	struct filemap_s *file;
-	for (file = filemap; file; file = file->next) {
-		if (strcmp(file->path, path) == 0) break;
-	}
-	return file;
-}
-
 static struct filemap_s *file_from_fd(int fd)
 {
 	struct filemap_s *file;
@@ -428,6 +416,44 @@ static struct filemap_s *file_from_fd(int fd)
 	return file;
 }
 
+static ssize_t generate_iv_from_hmac(int fd, size_t length, unsigned char key[256 / CHAR_BIT], unsigned char iv_out[256 / CHAR_BIT])
+{
+	mbedtls_md_context_t digest;
+	mbedtls_md_init(&digest);
+
+	// set up HMAC context
+	const mbedtls_md_info_t *info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
+	assert(mbedtls_md_get_size(info) == 32);
+	int md_result = mbedtls_md_setup(&digest, info, 1);
+	assert(md_result == 0);
+	md_result = mbedtls_md_hmac_starts(&digest, key, 256 / CHAR_BIT);
+	assert(md_result == 0);
+
+	// read file and update HMAC
+	struct buffer_s buffer = { .buffer = NULL, .size = 0 };
+	buffer_alloc(&buffer, 1024 * 1024);
+	while (length > 0) {
+		ssize_t read_result = read(fd, buffer.buffer, length < buffer.size ? length : buffer.size);
+		if (read_result < 0 && errno == EINTR) continue;
+		if (read_result < 0) return read_result;
+		md_result = mbedtls_md_hmac_update(&digest, (unsigned char *)buffer.buffer, (size_t)read_result);
+		assert(md_result == 0);
+		length -= (size_t)read_result;
+	}
+	free(buffer.buffer);
+
+	// finalize HMAC into IV
+	md_result = mbedtls_md_hmac_finish(&digest, iv_out);
+	assert(md_result == 0);
+
+	// rewind the file read position
+	off_t seek_result = lseek(fd, 0, SEEK_SET);
+	assert(seek_result == 0);
+
+	mbedtls_md_free(&digest);
+	return 0;
+}
+
 void encrypt_reset(void)
 {
 	pthread_mutex_lock(&filemap_lock);
@@ -435,8 +461,6 @@ void encrypt_reset(void)
 	struct filemap_s *next;
 	for (struct filemap_s *file = filemap; file; file = next) {
 		next = file->next;
-		if (file->state != CLOSE) mbedtls_gcm_free(&file->gcm);
-		free(file->path);
 		free(file->content_buffer.buffer);
 		free(file);
 	}

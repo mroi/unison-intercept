@@ -200,7 +200,7 @@ extension Tests {
 			stat($0!, statBuffer)
 			return Int(statBuffer.pointee.st_size)
 		}
-		XCTAssertEqual(size, 16 + 8 + "Test".count + 16)
+		XCTAssertEqual(size, 32 + 8 + "Test".count + 16)
 
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: size, alignment: 1)
 		// use POSIX open()/read() so the intercept layer encrypts the file
