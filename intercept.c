@@ -109,6 +109,14 @@ static void profile_intercept(id self, SEL command, void *arg)
 	previous_implementation(self, command, arg);
 }
 
+#else
+
+static void __attribute__((constructor)) initialize(void)
+{
+	// prevent LD_PRELOAD from propagating to sub-processes
+	unsetenv("LD_PRELOAD");
+}
+
 #endif
 
 
