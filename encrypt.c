@@ -386,15 +386,23 @@ static bool encrypt_search_key(const char *path, unsigned char key_out[256 / CHA
 
 	pthread_mutex_lock(&config.lock);
 	for (struct encrypt_s *encrypt = config.encrypt; encrypt; encrypt = encrypt->next) {
-		if (config.root[0].string) {
+		if (encrypt->path.string[0] != '/' && config.root[0].string) {
 			size_t size = config.root[0].length + sizeof("/") + encrypt->path.length;
 			buffer_alloc(&config.scratchpad, size);
 			snprintf(config.scratchpad.buffer, config.scratchpad.size, "%s/%s", config.root[0].string, encrypt->path.string);
-			if (fnmatch(config.scratchpad.buffer, path, FNM_PATHNAME | FNM_LEADING_DIR) == 0) {
-				if (key_out) memcpy(key_out, encrypt->key, sizeof(encrypt->key));
-				found = true;
-				break;
+		} else {
+			// do not prepend root when an absolute path is given
+			buffer_alloc(&config.scratchpad, encrypt->path.length + sizeof('\0'));
+			snprintf(config.scratchpad.buffer, config.scratchpad.size, "%s", encrypt->path.string);
+			if (encrypt->path.string[0] == '/' && encrypt->path.length == 1) {
+				// special case for just "/": FNM_LEADING_DIR will not work otherwise
+				config.scratchpad.buffer[0] = '\0';
 			}
+		}
+		if (fnmatch(config.scratchpad.buffer, path, FNM_PATHNAME | FNM_LEADING_DIR) == 0) {
+			if (key_out) memcpy(key_out, encrypt->key, sizeof(encrypt->key));
+			found = true;
+			break;
 		}
 	}
 	pthread_mutex_unlock(&config.lock);
