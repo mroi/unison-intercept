@@ -42,7 +42,7 @@ struct file_trailer_s {
 static pthread_mutex_t filemap_lock = PTHREAD_MUTEX_INITIALIZER;
 static struct filemap_s {
 	int fd;
-	enum { READ, WRITE } state;
+	enum { READ, WRITE, AUTHENTICATED } state;
 	size_t position;
 	unsigned char key[256 / CHAR_BIT];
 	mbedtls_gcm_context gcm;
@@ -117,8 +117,6 @@ int encrypt_open(const char *path, int flags, ...)
 
 int encrypt_close(int fd)
 {
-	int result = close(fd);
-
 	pthread_mutex_lock(&filemap_lock);
 	struct filemap_s *file, **prev = &filemap;
 	for (file = filemap; file; file = file->next) {
@@ -129,12 +127,19 @@ int encrypt_close(int fd)
 	pthread_mutex_unlock(&filemap_lock);
 
 	if (file) {
+		if (file->state != READ && file->state != AUTHENTICATED) {
+			// authentication failure, file was manipulated
+			ftruncate(fd, 0);
+			close(fd);
+			errno = EIO;
+			return -1;
+		}
 		mbedtls_gcm_free(&file->gcm);
 		free(file->content_buffer.buffer);
 		free(file);
 	}
 
-	return result;
+	return close(fd);
 }
 
 ssize_t encrypt_read(int fd, void *buf, size_t bytes)
@@ -332,7 +337,14 @@ ssize_t encrypt_write(int fd, const void *buf, size_t bytes)
 			}
 
 			int diff = memcmp(file->trailer.auth_tag, generated, sizeof(struct file_trailer_s));
-			if (diff != 0) return EIO;
+			if (diff == 0) {
+				file->state = AUTHENTICATED;
+			} else {
+				// authentication failure, file was manipulated
+				ftruncate(fd, 0);
+				errno = EIO;
+				result = -1;
+			}
 		}
 
 	} else {

@@ -203,15 +203,33 @@ extension Tests {
 		XCTAssertEqual(size, 32 + 8 + "Test".count + 16)
 
 		let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: size, alignment: 1)
+
 		// use POSIX open()/read() so the intercept layer encrypts the file
 		let readFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.readOnly.rawValue)
-		XCTAssert(read(readFd, buffer.baseAddress, buffer.count) == size)
+		XCTAssertEqual(read(readFd, buffer.baseAddress, buffer.count), size)
 		close(readFd)
 		// use POSIX open()/write() to recreate from the encrypted version
-		let writeFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.writeOnly.rawValue | O_TRUNC)
-		XCTAssert(write(writeFd, buffer.baseAddress, buffer.count) == size)
-		close(writeFd)
-		buffer.deallocate()
+		var writeFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.writeOnly.rawValue | O_TRUNC)
+		XCTAssertEqual(write(writeFd, buffer.baseAddress, buffer.count), size)
 		XCTAssertEqual(try! String(contentsOf: testFile), "Test")
+		close(writeFd)
+
+		// manipulate file content, expecting write() to fail
+		buffer[42] += 1
+		writeFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.writeOnly.rawValue | O_TRUNC)
+		XCTAssertEqual(write(writeFd, buffer.baseAddress, buffer.count), -1)
+		XCTAssertEqual(errno, Errno.ioError.rawValue)
+		XCTAssertEqual(try! String(contentsOf: testFile), "")
+		close(writeFd)
+
+		// manipulate expected trailer position, expecting close() to fail
+		buffer[32] += 1
+		writeFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.writeOnly.rawValue | O_TRUNC)
+		XCTAssertEqual(write(writeFd, buffer.baseAddress, buffer.count), size)
+		XCTAssertEqual(close(writeFd), -1)
+		XCTAssertEqual(errno, Errno.ioError.rawValue)
+		XCTAssertEqual(try! String(contentsOf: testFile), "")
+
+		buffer.deallocate()
 	}
 }
