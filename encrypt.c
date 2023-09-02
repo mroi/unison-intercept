@@ -12,6 +12,10 @@
 #include <limits.h>
 #include <assert.h>
 
+#ifdef __APPLE__
+#include <sys/attr.h>
+#endif
+
 #include "config.h"
 #include "encrypt.h"
 
@@ -387,6 +391,35 @@ int encrypt_lstat(const char * restrict path, struct stat * restrict buf)
 
 	return result;
 }
+
+#ifdef __APPLE__
+int encrypt_getattrlist(const char *path, void *attrs, void *buf, size_t buf_size, unsigned int options)
+{
+	int result = getattrlist(path, attrs, buf, buf_size, options);
+
+	struct attrlist *attr_list = attrs;
+	assert(attr_list->commonattr == ATTR_CMN_FNDRINFO);
+	assert(attr_list->volattr == 0);
+	assert(attr_list->dirattr == 0);
+	assert(attr_list->fileattr == 0 || attr_list->fileattr == ATTR_FILE_RSRCLENGTH);
+	assert(attr_list->forkattr == 0);
+
+	if (attr_list->fileattr == ATTR_FILE_RSRCLENGTH && encrypt_search_key(path, NULL)) {
+		struct attr_values {
+			uint32_t size;
+			uint8_t finder_info[32];
+			off_t rsrc_length;
+		} __attribute__((__packed__)) *attr_values = buf;
+		assert(attr_values->size == sizeof(struct attr_values));
+		if (attr_values->rsrc_length > 0) {
+			// we will encrypt existing resource forks, so increase reported size
+			attr_values->rsrc_length += sizeof(struct file_header_s) + sizeof(struct file_trailer_s);
+		}
+	}
+
+	return result;
+}
+#endif
 
 
 /* MARK: - Helper Functions */

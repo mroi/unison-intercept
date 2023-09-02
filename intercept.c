@@ -341,6 +341,36 @@ int lstat(const char * restrict path, struct stat * restrict buf)
 	return result;
 }
 
+#ifdef __APPLE__
+int getattrlist(const char *path, void *attrs, void *buf, size_t buf_size, unsigned int options)
+{
+	ORIGINAL_SYMBOL(getattrlist, (const char *path, void *attrList, void *attrBuf, size_t attrBufSize, unsigned int options))
+	int result = 0;
+	enum intercept_id saved_context = context;
+
+	switch (context) {
+	case NONE:
+	case NOCACHE:
+	case CONFIG:
+		context = ENCRYPT;
+		result = encrypt_getattrlist(path, attrs, buf, buf_size, options);
+		break;
+	case ENCRYPT:
+	case PREPOST:
+	case SYMLINK:
+	case UMASK:
+		context = ORIGINAL;
+		// FALLTHROUGH
+	case ORIGINAL:
+		result = original_getattrlist(path, attrs, buf, buf_size, options);
+		break;
+	}
+
+	context = saved_context;
+	return result;
+}
+#endif
+
 int rename(const char *old, const char *new)
 {
 	ORIGINAL_SYMBOL(rename, (const char *old, const char *new))
