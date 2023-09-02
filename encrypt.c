@@ -137,7 +137,7 @@ int encrypt_close(int fd)
 	if (file) {
 		if (file->state != READ_AUTHENTICATED && file->state != WRITE_AUTHENTICATED) {
 			// authentication failure, file was manipulated or not read completely
-			if (file->state == WRITE) ftruncate(fd, 0);
+			if (file->state == WRITE) (void)ftruncate(fd, 0);
 			close(fd);
 			errno = EIO;
 			return -1;
@@ -354,7 +354,7 @@ ssize_t encrypt_write(int fd, const void *buf, size_t bytes)
 				file->state = WRITE_AUTHENTICATED;
 			} else {
 				// authentication failure, file was manipulated
-				ftruncate(fd, 0);
+				(void)ftruncate(fd, 0);
 				errno = EIO;
 				result = -1;
 			}
