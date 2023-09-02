@@ -46,7 +46,7 @@ struct file_trailer_s {
 static pthread_mutex_t filemap_lock = PTHREAD_MUTEX_INITIALIZER;
 static struct filemap_s {
 	int fd;
-	enum { READ, WRITE, AUTHENTICATED } state;
+	enum { READ, READ_AUTHENTICATED, WRITE, WRITE_AUTHENTICATED } state;
 	size_t position;
 	unsigned char key[256 / CHAR_BIT];
 	mbedtls_gcm_context gcm;
@@ -131,9 +131,9 @@ int encrypt_close(int fd)
 	pthread_mutex_unlock(&filemap_lock);
 
 	if (file) {
-		if (file->state != READ && file->state != AUTHENTICATED) {
-			// authentication failure, file was manipulated
-			ftruncate(fd, 0);
+		if (file->state != READ_AUTHENTICATED && file->state != WRITE_AUTHENTICATED) {
+			// authentication failure, file was manipulated or not read completely
+			if (file->state == WRITE) ftruncate(fd, 0);
 			close(fd);
 			errno = EIO;
 			return -1;
@@ -154,7 +154,7 @@ ssize_t encrypt_read(int fd, void *buf, size_t bytes)
 	struct filemap_s *file = file_from_fd(fd);
 
 	if (file) {
-		assert(file->state == READ);
+		assert(file->state == READ || file->state == READ_AUTHENTICATED);
 		unsigned char *target = buf;
 
 		if (bytes > 0 && file->position == 0) {
@@ -237,6 +237,11 @@ ssize_t encrypt_read(int fd, void *buf, size_t bytes)
 			memcpy(target, source, to_emit);
 			result += to_emit;
 			file->position += to_emit;
+		}
+
+		if (file->position == file->header.trailer_start + sizeof(struct file_trailer_s)) {
+			// complete file emitted to the caller
+			file->state = READ_AUTHENTICATED;
 		}
 
 	} else {
@@ -342,7 +347,7 @@ ssize_t encrypt_write(int fd, const void *buf, size_t bytes)
 
 			int diff = memcmp(file->trailer.auth_tag, generated, sizeof(struct file_trailer_s));
 			if (diff == 0) {
-				file->state = AUTHENTICATED;
+				file->state = WRITE_AUTHENTICATED;
 			} else {
 				// authentication failure, file was manipulated
 				ftruncate(fd, 0);

@@ -207,12 +207,12 @@ extension Tests {
 		// use POSIX open()/read() so the intercept layer encrypts the file
 		let readFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.readOnly.rawValue)
 		XCTAssertEqual(read(readFd, buffer.baseAddress, buffer.count), size)
-		close(readFd)
+		XCTAssertEqual(close(readFd), 0)
 		// use POSIX open()/write() to recreate from the encrypted version
 		var writeFd = interceptOpen(testFile.path, FileDescriptor.AccessMode.writeOnly.rawValue | O_TRUNC)
 		XCTAssertEqual(write(writeFd, buffer.baseAddress, buffer.count), size)
 		XCTAssertEqual(try! String(contentsOf: testFile), "Test")
-		close(writeFd)
+		XCTAssertEqual(close(writeFd), 0)
 
 		// manipulate file content, expecting write() to fail
 		buffer[42] += 1
@@ -220,7 +220,8 @@ extension Tests {
 		XCTAssertEqual(write(writeFd, buffer.baseAddress, buffer.count), -1)
 		XCTAssertEqual(errno, Errno.ioError.rawValue)
 		XCTAssertEqual(try! String(contentsOf: testFile), "")
-		close(writeFd)
+		XCTAssertEqual(close(writeFd), -1)
+		XCTAssertEqual(errno, Errno.ioError.rawValue)
 
 		// manipulate expected trailer position, expecting close() to fail
 		buffer[32] += 1
