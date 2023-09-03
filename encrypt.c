@@ -231,7 +231,8 @@ ssize_t encrypt_read(int fd, void *buf, size_t bytes)
 			bytes -= gcm_size;
 		}
 
-		if (bytes > 0 && file->position >= file->header.trailer_start) {
+		if (bytes > 0 && file->position >= file->header.trailer_start &&
+		    file->position < file->header.trailer_start + sizeof(struct file_trailer_s)) {
 			// lastly emit the file trailer to the caller
 			size_t to_emit = sizeof(struct file_trailer_s);
 			to_emit -= file->position - file->header.trailer_start;
@@ -315,7 +316,8 @@ ssize_t encrypt_write(int fd, const void *buf, size_t bytes)
 			file->position += to_consume;
 		}
 
-		if (bytes > 0 && file->position >= file->header.trailer_start) {
+		if (bytes > 0 && file->position >= file->header.trailer_start &&
+		    file->position < file->header.trailer_start + sizeof(struct file_trailer_s)) {
 			// lastly consume the file trailer from the caller
 			size_t to_consume = sizeof(struct file_trailer_s);
 			to_consume -= file->position - file->header.trailer_start;
@@ -324,6 +326,7 @@ ssize_t encrypt_write(int fd, const void *buf, size_t bytes)
 			target += file->position - file->header.trailer_start;
 			memcpy(target, source, to_consume);
 			result += to_consume;
+			bytes -= to_consume;
 			file->position += to_consume;
 		}
 
@@ -358,6 +361,12 @@ ssize_t encrypt_write(int fd, const void *buf, size_t bytes)
 				errno = EIO;
 				result = -1;
 			}
+		}
+
+		if (bytes > 0) {
+			// caller tried to write unexpected extra file data
+			errno = EIO;
+			result = -1;
 		}
 
 	} else {
