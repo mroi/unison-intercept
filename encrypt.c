@@ -135,16 +135,17 @@ int encrypt_close(int fd)
 	pthread_mutex_unlock(&filemap_lock);
 
 	if (file) {
-		if (file->state != READ_AUTHENTICATED && file->state != WRITE_AUTHENTICATED) {
+		if (file->position == 0 || file->state == READ_AUTHENTICATED || file->state == WRITE_AUTHENTICATED) {
+			mbedtls_gcm_free(&file->gcm);
+			free(file->content_buffer.buffer);
+			free(file);
+		} else {
 			// authentication failure, file was manipulated or not read completely
 			if (file->state == WRITE) (void)ftruncate(fd, 0);
 			close(fd);
 			errno = EIO;
 			return -1;
 		}
-		mbedtls_gcm_free(&file->gcm);
-		free(file->content_buffer.buffer);
-		free(file);
 	}
 
 	return close(fd);
