@@ -27,7 +27,7 @@ when launching Unison.
 Intercept Functionality
 -----------------------
 
-Currently, five intercept layers are provided, which add the following features to Unison:
+Currently, six intercept layers are provided, which add the following features to Unison:
 
 **nocache**  
 Cause all writes performed by Unison to bypass the buffer cache. This has two advantages: It 
@@ -40,7 +40,7 @@ As Unison reads its configuration files, this intercept layer parses them and ex
 additional configuration options used by other intercepts. All additional options start with 
 `#` and therefore look like comments to the normal Unison parser.
 
-**encrypt**
+**encrypt**  
 Files are encrypted after local reads and decrypted before local writes. This ensures that 
 Unison operates on encrypted data when transferring file content to servers. The encryption 
 key can be configured using `#encrypt = Path PATH -> aes-256-gcm:SECRET` directives.
