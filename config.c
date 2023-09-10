@@ -340,11 +340,36 @@ static void process_entry(enum entry_type type)
 		if (!new_encrypt) break;
 		new_encrypt->path.string = strdup(argument.buffer);
 		new_encrypt->path.length = strlen(argument.buffer);
+		// find the last slash to separate path and filename
+		char *path, *name;
+		name = strrchr(argument.buffer, '/');
+		if (name) {
+			name[0] = '\0';
+			name++;
+			path = argument.buffer;
+		} else {
+			name = argument.buffer;
+			path = NULL;
+		}
+		// generate prefixed and suffixed versions of the filename
+		size_t alloc_size = sizeof(".unison.") - sizeof((char)'\0') + new_encrypt->path.length + sizeof(".*");
+		new_encrypt->prefixed_path.length = alloc_size - sizeof((char)'\0');
+		new_encrypt->prefixed_path.string = malloc(alloc_size);
+		assert(new_encrypt->prefixed_path.string);
+		snprintf(new_encrypt->prefixed_path.string, alloc_size,
+		         path ? "%s/.unison.%s.*" : "%.0s.unison.%s.*", path, name);
+		alloc_size = new_encrypt->path.length + sizeof(".unison.*");
+		new_encrypt->suffixed_path.length = alloc_size - sizeof((char)'\0');
+		new_encrypt->suffixed_path.string = malloc(alloc_size);
+		assert(new_encrypt->suffixed_path.string);
+		snprintf(new_encrypt->suffixed_path.string, alloc_size,
+		         path ? "%s/%s.unison.*" : "%.0s%s.unison.*", path, name);
 		// process the key material with SHA-256 to obtain an AES-256 key
 		mbedtls_sha256((unsigned char *)attribute, strlen(attribute), new_encrypt->key, 0);
 		new_encrypt->next = NULL;
 		pthread_mutex_lock(&config.lock);
-		// ordering by descending length causes O(n²) complexity, but ensures first match is most specific
+		// ordering by descending overall path length causes O(n²) complexity,
+		// but ensures first match is most specific
 		struct encrypt_s **cur_encrypt;
 		for (cur_encrypt = &config.encrypt; *cur_encrypt; cur_encrypt = &(*cur_encrypt)->next) {
 			if ((*cur_encrypt)->path.length < new_encrypt->path.length) break;

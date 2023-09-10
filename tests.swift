@@ -113,6 +113,8 @@ extension Tests {
 		XCTAssertEqual(String(cString: config.symlink.pointee.next.pointee.path.string), "aTp9W/HNyp")
 		XCTAssertEqual(String(cString: config.symlink.pointee.next.pointee.target), "CPYYlSAK3G")
 		XCTAssertEqual(String(cString: config.encrypt.pointee.path.string), "YkLyVNQUdX")
+		XCTAssertEqual(String(cString: config.encrypt.pointee.prefixed_path.string), ".unison.YkLyVNQUdX.*")
+		XCTAssertEqual(String(cString: config.encrypt.pointee.suffixed_path.string), "YkLyVNQUdX.unison.*")
 		XCTAssertEqual(String(cString: config.encrypt.pointee.next.pointee.path.string), "gsa3M")
 		XCTAssertEqual(config.encrypt.pointee.key.0, 241)
 		XCTAssertEqual(config.encrypt.pointee.next.pointee.key.0, 165)

@@ -29,6 +29,8 @@ extern struct config_s {
 	} *symlink;
 	struct encrypt_s {
 		struct string_s path;
+		struct string_s prefixed_path;
+		struct string_s suffixed_path;
 		unsigned char key[256 / CHAR_BIT];
 		struct encrypt_s *next;
 	} *encrypt;
