@@ -131,7 +131,7 @@ static void post_recurse(const char *path)
 #endif
 			if (strcmp(entry.d_name, ".") == 0 || strcmp(entry.d_name, "..") == 0)
 				continue;
-			size_t size = strlen(path) + strlen(entry.d_name) + sizeof('/') + sizeof('\0');
+			size_t size = strlen(path) + strlen(entry.d_name) + sizeof((char)'/') + sizeof((char)'\0');
 			buffer_alloc(&recursion, size);
 			assert(recursion.buffer);  // help the static analyzer
 			snprintf(recursion.buffer, recursion.size, "%s/%s", path, entry.d_name);

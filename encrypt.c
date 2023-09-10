@@ -453,7 +453,7 @@ static bool encrypt_search_key(const char *path, unsigned char key_out[256 / CHA
 			snprintf(config.scratchpad.buffer, config.scratchpad.size, "%s/%s", config.root[0].string, encrypt->path.string);
 		} else {
 			// do not prepend root when an absolute path is given
-			buffer_alloc(&config.scratchpad, encrypt->path.length + sizeof('\0'));
+			buffer_alloc(&config.scratchpad, encrypt->path.length + sizeof((char)'\0'));
 			snprintf(config.scratchpad.buffer, config.scratchpad.size, "%s", encrypt->path.string);
 			if (encrypt->path.string[0] == '/' && encrypt->path.length == 1) {
 				// special case for just "/": FNM_LEADING_DIR will not work otherwise

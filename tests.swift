@@ -114,8 +114,8 @@ extension Tests {
 		XCTAssertEqual(String(cString: config.symlink.pointee.next.pointee.target), "CPYYlSAK3G")
 		XCTAssertEqual(String(cString: config.encrypt.pointee.path.string), "YkLyVNQUdX")
 		XCTAssertEqual(String(cString: config.encrypt.pointee.next.pointee.path.string), "gsa3M")
-		XCTAssertEqual(config.encrypt.pointee.key.0, 193)
-		XCTAssertEqual(config.encrypt.pointee.next.pointee.key.0, 215)
+		XCTAssertEqual(config.encrypt.pointee.key.0, 241)
+		XCTAssertEqual(config.encrypt.pointee.next.pointee.key.0, 165)
 	}
 
 	func testPrePost() {

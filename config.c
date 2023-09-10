@@ -334,8 +334,8 @@ static void process_entry(enum entry_type type)
 
 	case ENTRY_ENCRYPT:
 		if (!attribute) break;
-		if (strncmp(attribute, "aes-256-acm", sizeof("aes-256-acm") - sizeof('\0')) != 0) break;
-		attribute += sizeof("aes-256-acm") - sizeof('\0');
+		if (strncmp(attribute, "aes-256-gcm:", sizeof("aes-256-gcm:") - sizeof((char)'\0')) != 0) break;
+		attribute += sizeof("aes-256-gcm:") - sizeof((char)'\0');
 		struct encrypt_s *new_encrypt = malloc(sizeof(struct encrypt_s));
 		if (!new_encrypt) break;
 		new_encrypt->path.string = strdup(argument.buffer);
@@ -393,6 +393,8 @@ void config_reset(void)
 
 	for (struct encrypt_s *encrypt = config.encrypt; encrypt;) {
 		free(encrypt->path.string);
+		free(encrypt->prefixed_path.string);
+		free(encrypt->suffixed_path.string);
 		struct encrypt_s *save_encrypt = encrypt;
 		encrypt = encrypt->next;
 		free(save_encrypt);
