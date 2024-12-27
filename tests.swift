@@ -6,7 +6,7 @@ import XCTest
 	@objc(connect:) dynamic func reset(_ profile: NSString = "") {}
 }
 
-let files = FileManager.default
+nonisolated(unsafe) let files = FileManager.default
 
 
 class Tests: XCTestCase {

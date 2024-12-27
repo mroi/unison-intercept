@@ -95,7 +95,10 @@ static void __attribute__((constructor)) initialize(void)
 	assert(class && selector);
 	Method method = class_getInstanceMethod(class, selector);
 	assert(method);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-strict"
 	previous_implementation = (connect_method *)method_setImplementation(method, (IMP)profile_intercept);
+#pragma clang diagnostic pop
 	assert(previous_implementation);
 }
 
@@ -459,7 +462,7 @@ DIR *opendir(const char *path)
 {
 	ORIGINAL_SYMBOL(opendir, (const char *path))
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types-strict"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 	DIR *(*typecorrect_original_opendir)(const char *path) = original_opendir;

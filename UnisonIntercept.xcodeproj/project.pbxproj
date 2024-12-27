@@ -356,6 +356,7 @@
 				WARNING_CFLAGS = (
 					"-Weverything",
 					"-Wno-gnu-label-as-value",
+					"-Wno-declaration-after-statement",
 				);
 			};
 			name = Debug;
@@ -397,6 +398,7 @@
 				WARNING_CFLAGS = (
 					"-Weverything",
 					"-Wno-gnu-label-as-value",
+					"-Wno-declaration-after-statement",
 				);
 			};
 			name = Release;
