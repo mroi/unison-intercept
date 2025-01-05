@@ -391,7 +391,6 @@
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				ONLY_ACTIVE_ARCH = YES;
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = (
 					"-Weverything",
@@ -460,12 +459,14 @@
 		4CD4D6862A9F800E00AC3B95 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CC = "clang -arch arm64 -arch x86_64";
 			};
 			name = Debug;
 		};
 		4CD4D6872A9F800E00AC3B95 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CC = "clang -arch arm64 -arch x86_64";
 			};
 			name = Release;
 		};
