@@ -39,6 +39,6 @@ else
 all: build
 
 build install clean:
-	xcodebuild $@
+	xcodebuild $(XCODEFLAGS) $@
 
 endif
