@@ -209,7 +209,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1020;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					4C0DE427202B56AD00599E41 = {
 						CreatedOnToolsVersion = 9.2;
@@ -354,8 +354,11 @@
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = (
 					"-Weverything",
+					"-Wno-pre-c11-compat",
+					"-Wno-missing-include-dirs",
 					"-Wno-gnu-label-as-value",
 					"-Wno-declaration-after-statement",
+					"-Wno-switch-default",
 				);
 			};
 			name = Debug;
@@ -394,8 +397,11 @@
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = (
 					"-Weverything",
+					"-Wno-pre-c11-compat",
+					"-Wno-missing-include-dirs",
 					"-Wno-gnu-label-as-value",
 					"-Wno-declaration-after-statement",
+					"-Wno-switch-default",
 				);
 			};
 			name = Release;
@@ -459,14 +465,14 @@
 		4CD4D6862A9F800E00AC3B95 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CC = "clang -arch arm64 -arch x86_64";
+				CFLAGS = "-arch arm64 -arch x86_64";
 			};
 			name = Debug;
 		};
 		4CD4D6872A9F800E00AC3B95 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CC = "clang -arch arm64 -arch x86_64";
+				CFLAGS = "-arch arm64 -arch x86_64 -O2";
 			};
 			name = Release;
 		};
