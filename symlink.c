@@ -164,7 +164,15 @@ static void symlink_prepare_children(const struct string_s path, const struct st
 		if (next_slash) {
 			// more subdirectories to come, create next directory level
 			*next_slash = '\0';
-			mkdir(link.string, S_IRWXU | S_IRWXG | S_IRWXO);
+			const struct string_s dir = {
+				.string = strdup(link.string),
+				.length = strlen(link.string)
+			};
+			*next_slash = '/';
+			mkdir(dir.string, S_IRWXU | S_IRWXG | S_IRWXO);
+			// recurse into the just created directory
+			symlink_prepare_children(dir, link, target);
+			free(dir.string);
 		} else {
 			// child is last path element, create symlink
 			int error = symlink(target, link.string);
