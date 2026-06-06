@@ -209,7 +209,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1020;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					4C0DE427202B56AD00599E41 = {
 						CreatedOnToolsVersion = 9.2;
@@ -354,11 +354,17 @@
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = (
 					"-Weverything",
-					"-Wno-pre-c11-compat",
 					"-Wno-missing-include-dirs",
-					"-Wno-gnu-label-as-value",
+					"-Wno-pre-c11-compat",
+					"-Wno-pre-c23-compat",
+					"-Wno-c++-keyword",
+					"-Wno-c++-hidden-decl",
 					"-Wno-declaration-after-statement",
+					"-Wno-global-constructors",
+					"-Wno-gnu-label-as-value",
+					"-Wno-jump-misses-init",
 					"-Wno-switch-default",
+					"-Wno-implicit-void-ptr-cast",
 				);
 			};
 			name = Debug;
@@ -397,11 +403,17 @@
 				UNISON_PATH = /Users/Shared/Library/CoreServices/Unison.app;
 				WARNING_CFLAGS = (
 					"-Weverything",
-					"-Wno-pre-c11-compat",
 					"-Wno-missing-include-dirs",
-					"-Wno-gnu-label-as-value",
+					"-Wno-pre-c11-compat",
+					"-Wno-pre-c23-compat",
+					"-Wno-c++-keyword",
+					"-Wno-c++-hidden-decl",
 					"-Wno-declaration-after-statement",
+					"-Wno-global-constructors",
+					"-Wno-gnu-label-as-value",
+					"-Wno-jump-misses-init",
 					"-Wno-switch-default",
+					"-Wno-implicit-void-ptr-cast",
 				);
 			};
 			name = Release;
