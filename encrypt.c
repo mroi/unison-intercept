@@ -201,6 +201,7 @@ ssize_t encrypt_read(int fd, void *buf, size_t bytes)
 			size_t to_read = to_emit;
 			char *buffer = file->content_buffer.buffer;
 			while (to_read > 0) {
+				[[clang::suppress]]  // unix.BlockInCriticalSection
 				ssize_t read_result = read(fd, buffer, to_read);
 				if (read_result < 0 && errno == EINTR) continue;
 				if (read_result < 0) return read_result;
@@ -251,6 +252,7 @@ ssize_t encrypt_read(int fd, void *buf, size_t bytes)
 		}
 
 	} else {
+		[[clang::suppress]]  // unix.BlockInCriticalSection
 		result = read(fd, buf, bytes);
 	}
 
@@ -501,6 +503,7 @@ static ssize_t generate_iv_from_hmac(int fd, size_t length, unsigned char key[25
 	struct buffer_s buffer = { .buffer = NULL, .size = 0 };
 	buffer_alloc(&buffer, 1024 * 1024);
 	while (length > 0) {
+		[[clang::suppress]]  // unix.BlockInCriticalSection
 		ssize_t read_result = read(fd, buffer.buffer, length < buffer.size ? length : buffer.size);
 		if (read_result < 0 && errno == EINTR) continue;
 		if (read_result < 0) return read_result;
