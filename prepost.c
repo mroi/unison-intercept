@@ -120,25 +120,19 @@ static void post_recurse(const char *path)
 	struct stat statbuf;
 	if (lstat(path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode)) {
 		DIR *dir = opendir(path);
-		struct dirent entry;
-		struct dirent *result = &entry;
+		struct dirent *entry;
 		struct buffer_s recursion = { .buffer = NULL, .size = 0 };
-#ifdef __APPLE__
-		while (readdir_r(dir, &entry, &result) == 0 && result) {
-#else
-		while ((result = readdir(dir))) {
-			entry = *result;
-#endif
-			if (strcmp(entry.d_name, ".") == 0 || strcmp(entry.d_name, "..") == 0)
+		while ((entry = readdir(dir))) {
+			if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
 				continue;
-			size_t size = strlen(path) + strlen(entry.d_name) + sizeof((char)'/') + sizeof((char)'\0');
+			size_t size = strlen(path) + strlen(entry->d_name) + sizeof((char)'/') + sizeof((char)'\0');
 			buffer_alloc(&recursion, size);
 			assert(recursion.buffer);  // help the static analyzer
-			snprintf(recursion.buffer, recursion.size, "%s/%s", path, entry.d_name);
+			snprintf(recursion.buffer, recursion.size, "%s/%s", path, entry->d_name);
 			post_recurse(recursion.buffer);
 		}
 		free(recursion.buffer);
-		closedir(dir);
+		if (dir) closedir(dir);
 	}
 }
 
