@@ -8,11 +8,7 @@ TGT = $(HOME)/.unison/$(LIB)
 
 CPPFLAGS = -Iencrypt/include
 CFLAGS = -std=c23 -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -O3 -fPIC $(WARNINGS)
-ifeq ($(shell $(CC) --version | grep -o clang | head -n1),clang)
-WARNINGS = -Weverything -Wno-gnu-label-as-value -Wno-poison-system-directories
-else
 WARNINGS = -Wall -Wextra -Wno-unknown-pragmas -Wno-attributes
-endif
 
 .PHONY: all install clean
 
