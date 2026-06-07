@@ -356,14 +356,20 @@ static void process_entry(enum entry_type type)
 		new_encrypt->prefixed_path.length = alloc_size - sizeof((char)'\0');
 		new_encrypt->prefixed_path.string = malloc(alloc_size);
 		assert(new_encrypt->prefixed_path.string);
-		snprintf(new_encrypt->prefixed_path.string, alloc_size,
-		         path ? "%s/.unison.%s.*" : "%.0s.unison.%s.*", path, name);
+		if (path) {
+			snprintf(new_encrypt->prefixed_path.string, alloc_size, "%s/.unison.%s.*", path, name);
+		} else {
+			snprintf(new_encrypt->prefixed_path.string, alloc_size, ".unison.%s.*", name);
+		}
 		alloc_size = new_encrypt->path.length + sizeof(".unison.*");
 		new_encrypt->suffixed_path.length = alloc_size - sizeof((char)'\0');
 		new_encrypt->suffixed_path.string = malloc(alloc_size);
 		assert(new_encrypt->suffixed_path.string);
-		snprintf(new_encrypt->suffixed_path.string, alloc_size,
-		         path ? "%s/%s.unison.*" : "%.0s%s.unison.*", path, name);
+		if (path) {
+			snprintf(new_encrypt->suffixed_path.string, alloc_size, "%s/%s.unison.*", path, name);
+		} else {
+			snprintf(new_encrypt->suffixed_path.string, alloc_size, "%s.unison.*", name);
+		}
 		// process the key material with SHA-256 to obtain an AES-256 key
 		mbedtls_sha256((unsigned char *)attribute, strlen(attribute), new_encrypt->key, 0);
 		new_encrypt->next = NULL;
