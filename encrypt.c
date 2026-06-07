@@ -35,12 +35,10 @@ static bool sync_started = false;
 // we add this to the beginning of files
 struct file_header_s {
 	unsigned char iv[256 / CHAR_BIT];
+	_Static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__,
+	               "storing a size_t in the encrypted file format assumes little endian processors");
 	size_t trailer_start;
 };
-
-#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
-#error storing a size_t in the encrypted file format assumes little endian processors
-#endif
 
 // we add this to the end of files
 struct file_trailer_s {

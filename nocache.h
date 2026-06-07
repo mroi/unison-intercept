@@ -4,4 +4,4 @@
  * will read back from the physical storage medium, not from the buffer cache.
  * Also, this intercept lowers Unison's scheduler priority to reduce IO impact. */
 
-int nocache_open(const char *path, int flags, ...);
+[[nodiscard]] int nocache_open(const char *path, int flags, ...);

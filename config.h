@@ -31,6 +31,7 @@ extern struct config_s {
 		struct string_s path;
 		struct string_s prefixed_path;
 		struct string_s suffixed_path;
+		_Static_assert(256 / CHAR_BIT == 32, "AES-256 key must be 32 bytes");
 		unsigned char key[256 / CHAR_BIT];
 		struct encrypt_s *next;
 	} *encrypt;
@@ -51,8 +52,8 @@ static inline void buffer_alloc(struct buffer_s * restrict buffer, size_t size)
 }
 
 
-int config_open(const char *path, int flags, ...);
-int config_close(int fd);
-ssize_t config_read(int fd, void *buf, size_t bytes);
+[[nodiscard]] int config_open(const char *path, int flags, ...);
+[[nodiscard]] int config_close(int fd);
+[[nodiscard]] ssize_t config_read(int fd, void *buf, size_t bytes);
 
 void config_reset(void);

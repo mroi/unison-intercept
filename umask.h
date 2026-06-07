@@ -2,6 +2,6 @@
 
 #include <sys/types.h>
 
-int umask_open(const char *path, int flags, ...);
-int umask_mkdir(const char *path, mode_t mode);
-int umask_symlink(const char *target, const char *path);
+[[nodiscard]] int umask_open(const char *path, int flags, ...);
+[[nodiscard]] int umask_mkdir(const char *path, mode_t mode);
+[[nodiscard]] int umask_symlink(const char *target, const char *path);

@@ -172,7 +172,7 @@ int open(const char *path, int flags, ...)
 		break;
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		if (flags & O_CREAT)
 			result = original_open(path, flags, va_arg(arg, unsigned));
@@ -207,7 +207,7 @@ int close(int fd)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_close(fd);
 		break;
@@ -238,7 +238,7 @@ ssize_t read(int fd, void *buf, size_t bytes)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_read(fd, buf, bytes);
 		break;
@@ -266,7 +266,7 @@ ssize_t write(int fd, const void *buf, size_t bytes)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_write(fd, buf, bytes);
 		break;
@@ -300,7 +300,7 @@ int stat(const char * restrict path, struct stat * restrict buf)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_stat(path, buf);
 		break;
@@ -334,7 +334,7 @@ int lstat(const char * restrict path, struct stat * restrict buf)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_lstat(path, buf);
 		break;
@@ -363,7 +363,7 @@ int getattrlist(const char *path, void *attrs, void *buf, size_t buf_size, unsig
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_getattrlist(path, attrs, buf, buf_size, options);
 		break;
@@ -392,7 +392,7 @@ int rename(const char *old, const char *new)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_rename(old, new);
 		break;
@@ -420,7 +420,7 @@ int symlink(const char *target, const char *path)
 		break;
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_symlink(target, path);
 		break;
@@ -448,7 +448,7 @@ int unlink(const char *path)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_unlink(path);
 		break;
@@ -483,7 +483,7 @@ DIR *opendir(const char *path)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = typecorrect_original_opendir(path);
 		break;
@@ -511,7 +511,7 @@ int closedir(DIR *dir)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_closedir(dir);
 		break;
@@ -539,7 +539,7 @@ int mkdir(const char *path, mode_t mode)
 		break;
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_mkdir(path, mode);
 		break;
@@ -567,7 +567,7 @@ int rmdir(const char *path)
 	case SYMLINK:
 	case UMASK:
 		context = ORIGINAL;
-		// FALLTHROUGH
+		[[fallthrough]];
 	case ORIGINAL:
 		result = original_rmdir(path);
 		break;

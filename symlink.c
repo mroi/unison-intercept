@@ -137,14 +137,12 @@ static void symlink_prepare(const struct string_s path, const struct string_s li
 		mkdir(path.string, S_IRWXU | S_IRWXG | S_IRWXO);
 	} else if (path.length == link.length) {
 		// since we know path is a prefix, we now know path is equal to the link directive
-		int error = symlink(target, path.string);
-		(void)error;  // ignore if symlink could not be created
+		[[maybe_unused]] int error = symlink(target, path.string);
 	}
 }
 
-static void symlink_cleanup(const struct string_s path, const struct string_s link, const char *target)
+static void symlink_cleanup(const struct string_s path, const struct string_s link, [[maybe_unused]] const char *target)
 {
-	(void)target;
 	if (path.length == link.length) {
 		// since we know path is a prefix, we now know path is equal to the link directive
 		struct stat s;
@@ -175,15 +173,13 @@ static void symlink_prepare_children(const struct string_s path, const struct st
 			free(dir.string);
 		} else {
 			// child is last path element, create symlink
-			int error = symlink(target, link.string);
-			(void)error;  // ignore if symlink could not be created
+			[[maybe_unused]] int error = symlink(target, link.string);
 		}
 	}
 }
 
-static void symlink_cleanup_children(const struct string_s path, const struct string_s link, const char *target)
+static void symlink_cleanup_children(const struct string_s path, const struct string_s link, [[maybe_unused]] const char *target)
 {
-	(void)target;
 	if (path.length < link.length && link.string[path.length] == '/') {
 		// path is a proper parent directory of the link directive
 		const char *child_path = link.string + path.length + 1;
