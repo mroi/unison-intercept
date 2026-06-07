@@ -477,7 +477,8 @@
 		4CD4D6862A9F800E00AC3B95 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CFLAGS = "-arch arm64 -arch x86_64";
+				CFLAGS = "-arch arm64 -arch x86_64 -O2";
+				WARNING_CFLAGS = "-Wall";
 			};
 			name = Debug;
 		};
@@ -485,6 +486,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CFLAGS = "-arch arm64 -arch x86_64 -O2";
+				WARNING_CFLAGS = "-Wall";
 			};
 			name = Release;
 		};
